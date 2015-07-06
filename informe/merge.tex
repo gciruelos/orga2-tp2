@@ -2,7 +2,7 @@ $\\[4cm]$
 \section{Merge}
 
 \subsection{C}
-El código de C es bastante simple. Lo que hace al inicio es convertir ambos punteros a punteros a matrices de matrices, que tienen elementos de $w$ bytes de tamaño, que a su vez tienen elementos de 4 bytes de tamaño.
+El código de C es bastante simple. Lo que hace al inicio es convertir ambos punteros a punteros a matrices de elementos de 3 dimensiones, que tienen elementos de $w$ bytes de tamaño, que a su vez tienen elementos de 4 bytes de tamaño.
 
 Luego se realizan 3 ciclos, el primero sobre las filas, el segundo sobre las columnas, y el tercero sobre los canales (exceptuando el canal de transparencia, notar que i se inicializa en 1).
 
@@ -50,7 +50,7 @@ De esta manera obtenemos en \xmm{3} los siguientes valores
 Donde $v$ es $value$.
 
 
-Ahora, nos gustaría tener en el otro registros los números tal que, sumados con los de \xmm{3}, dan 256. Para eso, nos aprovechamos de la representación complemento a 2, dado que lo que queremos en realidad son los inversos aditivos (en 8 bits) de estos números en el registro \xmm{4}. Entonces usamos que el inverso aditivo de un número es el negado bit a bit más 1.
+Ahora, nos gustaría tener en el otro registros los números tal que, sumados con los de \xmm{3}, dan 256. Para eso, nos aprovechamos de la representación complemento a 2, dado que lo que queremos en realidad son los inversos aditivos (en 8 bits) de estos números en el registro \xmm{4}. Entonces usamos que el inverso aditivo de un número es el negado bit a bit más 1 (esto se debe al sistema de representación complemento a 2, es muy fácil de probar).
 
 Cargamos en \xmm{4} 8 enteros de 16 bits con valor 257, ya que es 256+1.
 Luego, al hacer la diferencia

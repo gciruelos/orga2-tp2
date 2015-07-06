@@ -6,48 +6,33 @@
 ; ************************************************************************* ;
 
 section .data
-align 16
+
 setRGBA: db 0xFF
-align 16
+
 _256: dd 256.0
-align 16
 _1111: dd 1.0, 1.0, 1.0, 1.0
-align 16
 _0000: dd 0.0, 0.0, 0.0, 0.0
-align 16
 _2: dd 2.0, 2.0, 2.0, 2.0
-align 16
 _4: dd 4.0, 4.0, 4.0, 4.0
-align 16
 _6: dd 6.0, 6.0, 6.0, 6.0
-align 16
 _60: dd 60.0, 60.0, 60.0, 60.0
-align 16
 _120: dd 120.0, 120.0, 120.0, 120.0
-align 16
 _180: dd 180.0, 180.0, 180.0, 180.0
-align 16
 _240: dd 240.0, 240.0, 240.0, 240.0
-align 16
 _255: dd 255.0, 255.0, 255.0, 255.0
-align 16
 _300: dd 300.0, 300.0, 300.0, 300.0
-align 16
 _360: dd 360.0, 360.0, 360.0, 360.0
-align 16
 _510: dd 510.0, 510.0, 510.0, 510.0
-align 16
 _n360: dd -360.0, -360.0, -360.0, -360.0
-align 16
 _2550001: dd 255.0001, 255.0001, 255.0001, 255.0001
 _255int: dd 255, 255, 255, 255
 
-align 16
+
 _arreglar: dd 0.000001
-align 16
+
 _floor: dd 0x7F80
 
-align 16
+
 _todo1: dd 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
 
 ; RGBA
@@ -72,7 +57,6 @@ ASM_hsl2:
   push r13
   push r14
   push r15
-  sub rsp, 8
 
   ldmxcsr [_floor]
   ; xmm0 = hh
@@ -109,7 +93,7 @@ ASM_hsl2:
   addss xmm4, xmm0
   pslldq xmm4, 4
   sub rsp, 16
-  movdqa [rsp], xmm4
+  movdqu [rsp], xmm4
 ;;;; xmm4 = [ll | ss | hh | 00]
 
 
@@ -127,9 +111,9 @@ rgbTOhslBack:
 
 
   ;;;; recupero xmm4 = [ll | ss | hh | 00]
-  movdqa xmm4, [rsp]
+  movdqu xmm4, [rsp]
 
-  movaps xmm7, [_1111]   ; xmm7 = [1 | 1 | 1 | 1]
+  movups xmm7, [_1111]   ; xmm7 = [1 | 1 | 1 | 1]
   pxor xmm8, xmm8      ; xmm8 = 0
   movss xmm9, [_360]   ; xmm9 = [ x | x | x | 360.0]
   movss xmm10, [_n360]   ; xmm10 = [ x | x | x | -360.0]
@@ -145,7 +129,7 @@ rgbTOhslBack:
   ;; notar que basta seleccionar cuales quiero usar (haciendo and) y sumandolos
 
   ;; construyo xmm5
-  movaps xmm5, xmm7    ; xmm5 = [1 | 1 | 1 | 1]
+  movups xmm5, xmm7    ; xmm5 = [1 | 1 | 1 | 1]
   subps xmm5, xmm3     ; xmm5 = [1-(l+LL) | 1-(s+SS) | 1-(h+HH) | 1-(a+00)]
   psrldq xmm5, 4       ; xmm5 = [0        | 1-(l+LL) | 1-(s+SS) | 1-(h+HH)]
   movss xmm5, xmm10    ; xmm5 = [0        | 1-(l+LL) | 1-(s+SS) | 360     ]
@@ -163,7 +147,7 @@ rgbTOhslBack:
   ;; [1 | 1 | 360 | 256] = xmm12
   ;; [0 | 0 | 0   | 0  ] = xmm13
 
-  movaps xmm12, xmm7   ; xmm7 = [1 | 1 | 1 | 1]
+  movups xmm12, xmm7   ; xmm7 = [1 | 1 | 1 | 1]
   movss xmm12, xmm9    ; xmm7 = [1 | 1 | 1 | 360]
   pslldq xmm12, 4      ; xmm7 = [1 | 1 | 360 | 0]
   movss xmm12, xmm11   ; xmm7 = [1 | 1 | 360 | 256]
@@ -172,8 +156,8 @@ rgbTOhslBack:
 
 
   cmpltps xmm12, xmm3 ; xmm12 = 1 o 0 dependiendo
-  movdqa xmm14, xmm13
-  movdqa xmm13, xmm3   ; los doy vuelta porque necesito greater than
+  movdqu xmm14, xmm13
+  movdqu xmm13, xmm3   ; los doy vuelta porque necesito greater than
   cmpltps xmm13, xmm14  ; xmm13 = 1 o 0 dependiendo
 
   pand xmm5, xmm12
@@ -192,7 +176,6 @@ _fin:
   add rsp, 16
   ;mov rdi, rbx
   ;call free    ; libero la memoria que pedi
-  add rsp, 8
   pop r15
   pop r14
   pop r13
@@ -341,7 +324,7 @@ _rgbTOhsl:
   movss xmm0, xmm12
 
   ;movups [rbx], xmm0
-  movaps xmm3, xmm0
+  movups xmm3, xmm0
 
   jmp rgbTOhslBack
 
@@ -360,7 +343,7 @@ _hslTOrgb:
   movss xmm6, xmm4
   pslldq xmm4, 4
   addss xmm4, xmm6
-  movaps xmm5, xmm4
+  movups xmm5, xmm4
   pslldq xmm5, 8
   addps xmm4, xmm5 ; xmm4 = [H | H | H | H]
 
@@ -370,18 +353,18 @@ _hslTOrgb:
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; calculo de c -> xmm0 ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
-  movaps xmm0, xmm3
+  movups xmm0, xmm3
   psrldq xmm0, 12  ; xmm0 = [0|0|0|L]
   movss xmm1, [_2]
   mulss xmm0, xmm1 ; xmm0 = [0|0|0|2*L]
-  movaps xmm1, [_1111]
+  movups xmm1, [_1111]
   subss xmm0, xmm1 ; xmm0 = [0|0|0|2*L-1]
   pxor xmm1, xmm1  ; xmm2 = 0
   subss xmm1, xmm0 ; xmm2 = [0|0|0|1-2*L]
   maxss xmm0, xmm1 ; xmm0 = [0|0|0|fabs(2*L-1)]
-  movaps xmm1, [_1111]
+  movups xmm1, [_1111]
   subss xmm1, xmm0 ; xmm1 = [x|x|x|1-fabs(2*L-1)]
-  movaps xmm0, xmm3
+  movups xmm0, xmm3
   psrldq xmm0, 8
   mulss xmm0, xmm1 ; xmm0 = [x|x|x|c = ( 1 - fabs( 2*L - 1 )) * s]
 
@@ -394,7 +377,7 @@ _hslTOrgb:
   psrldq xmm1, 4 ; xmm1 = [0 L S H]
   ;;movss xmm15, [_60]
   divss xmm1, [_60] ; xmm1 = [x|x|x|H/60]
-  movaps xmm12, xmm1; xmm12 = [x|x|x|H/60]
+  movups xmm12, xmm1; xmm12 = [x|x|x|H/60]
   movss xmm13, [_2] ; xmm13 = [x|x|x|2]
   divss xmm12, xmm13
   roundss xmm12, xmm12, 0xf ;; CONSULTAR : modo de redondeo
@@ -407,7 +390,7 @@ _hslTOrgb:
   maxss xmm1, xmm2 ; xmm0 = [0|0|0|fabs(fmod(H/60, 2)-1)]
   subss xmm13, xmm1; xmm13= [x|x|x|1-fabs(fmod(H/60, 2)-1)]
   mulss xmm13, xmm0
-  movaps xmm1, xmm13  ; xmm1 = [x|x|x|x = C*(1-fabs(fmod(H/60,2)-1))]
+  movups xmm1, xmm13  ; xmm1 = [x|x|x|x = C*(1-fabs(fmod(H/60,2)-1))]
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; calculo de m -> xmm2 ;;
@@ -418,7 +401,7 @@ _hslTOrgb:
   divss xmm2, xmm13 ; xmm2 = c/2
   movss xmm14, xmm2 ; xmm14 = c/2
 
-  movaps xmm2, xmm3  ;
+  movups xmm2, xmm3  ;
   psrldq xmm2, 12
   subss xmm2, xmm14 ; xmm2 = [x|x|x|m = L-C/2]
 
@@ -427,7 +410,7 @@ _hslTOrgb:
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   ;xmm4 = h, xmm3 = pixel, xmm2 = m, xmm1 = x, xmm0 = c
-  movaps xmm15, [_255] ; xmm15 = 255.0
+  movups xmm15, [_255] ; xmm15 = 255.0
 
   addss xmm0, xmm2
   addss xmm1, xmm2 ; Le sumo m a todos los x y todos los c
@@ -442,7 +425,7 @@ _hslTOrgb:
 
 
   pxor xmm15, xmm15 ; xmm15 = 0
-  movaps xmm14, [_todo1]  ; xmm14 = trabajo que hice hasta ahora (1 = nada)
+  movups xmm14, [_todo1]  ; xmm14 = trabajo que hice hasta ahora (1 = nada)
 
   pxor xmm7, xmm7  ; [R|G|B|A]
 
@@ -460,16 +443,16 @@ _hslTOrgb:
   pslldq xmm13, 4
   addss xmm13, [_255int] ; a
 
-  movaps xmm9, xmm13
+  movups xmm9, xmm13
 
-  movaps xmm10, xmm4    ; cargo todos los h
+  movups xmm10, xmm4    ; cargo todos los h
   cmpltps xmm10, [_60]  ; comparo con 60
 
   pand xmm13, xmm10
   pand xmm13, xmm14
 
   pandn xmm10, xmm14
-  movaps xmm14, xmm10
+  movups xmm14, xmm10
 
   paddd xmm7, xmm13
 
@@ -477,50 +460,50 @@ _hslTOrgb:
 
 ;; 120 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;en xmm13 formo el vector
-  movaps xmm13, xmm9
+  movups xmm13, xmm9
   pshufd xmm13, xmm13, 0xB4 ; b4 = 10 11 01 00
 
-  movaps xmm10, xmm4    ; cargo todos los h
+  movups xmm10, xmm4    ; cargo todos los h
   cmpltps xmm10, [_120]  ; comparo con 60
 
   pand xmm13, xmm10
   pand xmm13, xmm14
 
   pandn xmm10, xmm14
-  movaps xmm14, xmm10
+  movups xmm14, xmm10
 
   paddd xmm7, xmm13
 
 
 ;; 180 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;en xmm13 formo el vector
-  movaps xmm13, xmm9
+  movups xmm13, xmm9
   pshufd xmm13, xmm13, 0x78 ; 78 = 01 11 10 00
 
-  movaps xmm10, xmm4    ; cargo todos los h
+  movups xmm10, xmm4    ; cargo todos los h
   cmpltps xmm10, [_180]  ; comparo con 60
 
   pand xmm13, xmm10
   pand xmm13, xmm14
 
   pandn xmm10, xmm14
-  movaps xmm14, xmm10
+  movups xmm14, xmm10
 
   paddd xmm7, xmm13
 
 ;; 240 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;en xmm13 formo el vector
-  movaps xmm13, xmm9
+  movups xmm13, xmm9
   pshufd xmm13, xmm13, 0x6C ; 6c = 01 10 11 00
 
-  movaps xmm10, xmm4    ; cargo todos los h
+  movups xmm10, xmm4    ; cargo todos los h
   cmpltps xmm10, [_240]  ; comparo con 60
 
   pand xmm13, xmm10
   pand xmm13, xmm14
 
   pandn xmm10, xmm14
-  movaps xmm14, xmm10
+  movups xmm14, xmm10
 
   paddd xmm7, xmm13
 
@@ -528,10 +511,10 @@ _hslTOrgb:
 
 ;; 300 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;en xmm13 formo el vector
-  movaps xmm13, xmm9
+  movups xmm13, xmm9
   pshufd xmm13, xmm13, 0x9C ; 9c = 10 01 11 00
 
-  movaps xmm10, xmm4    ; cargo todos los h
+  movups xmm10, xmm4    ; cargo todos los h
   cmpltps xmm10, [_300]  ; comparo con 60
 
   pand xmm13, xmm10
@@ -546,7 +529,7 @@ _hslTOrgb:
 
 ;; 360 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;en xmm13 formo el vector
-  movaps xmm13, xmm9
+  movups xmm13, xmm9
   pshufd xmm13, xmm13, 0xD8 ; d8 = 11 01 10 00
 
   pand xmm13, xmm10

@@ -109,7 +109,7 @@ ASM_hsl2:
   addss xmm4, xmm0
   pslldq xmm4, 4
   sub rsp, 16
-  movdqa [rsp], xmm4
+  movdqu [rsp], xmm4
 ;;;; xmm4 = [ll | ss | hh | 00]
 
 
@@ -127,9 +127,9 @@ rgbTOhslBack:
 
 
   ;;;; recupero xmm4 = [ll | ss | hh | 00]
-  movdqa xmm4, [rsp]
+  movdqu xmm4, [rsp]
 
-  movaps xmm7, [_1111]   ; xmm7 = [1 | 1 | 1 | 1]
+  movups xmm7, [_1111]   ; xmm7 = [1 | 1 | 1 | 1]
   pxor xmm8, xmm8      ; xmm8 = 0
   movss xmm9, [_360]   ; xmm9 = [ x | x | x | 360.0]
   movss xmm10, [_n360]   ; xmm10 = [ x | x | x | -360.0]
@@ -145,7 +145,7 @@ rgbTOhslBack:
   ;; notar que basta seleccionar cuales quiero usar (haciendo and) y sumandolos
 
   ;; construyo xmm5
-  movaps xmm5, xmm7    ; xmm5 = [1 | 1 | 1 | 1]
+  movups xmm5, xmm7    ; xmm5 = [1 | 1 | 1 | 1]
   subps xmm5, xmm3     ; xmm5 = [1-(l+LL) | 1-(s+SS) | 1-(h+HH) | 1-(a+00)]
   psrldq xmm5, 4       ; xmm5 = [0        | 1-(l+LL) | 1-(s+SS) | 1-(h+HH)]
   movss xmm5, xmm10    ; xmm5 = [0        | 1-(l+LL) | 1-(s+SS) | 360     ]
@@ -163,7 +163,7 @@ rgbTOhslBack:
   ;; [1 | 1 | 360 | 256] = xmm12
   ;; [0 | 0 | 0   | 0  ] = xmm13
 
-  movaps xmm12, xmm7   ; xmm7 = [1 | 1 | 1 | 1]
+  movups xmm12, xmm7   ; xmm7 = [1 | 1 | 1 | 1]
   movss xmm12, xmm9    ; xmm7 = [1 | 1 | 1 | 360]
   pslldq xmm12, 4      ; xmm7 = [1 | 1 | 360 | 0]
   movss xmm12, xmm11   ; xmm7 = [1 | 1 | 360 | 256]
@@ -379,9 +379,9 @@ _hslTOrgb:
   pxor xmm1, xmm1  ; xmm2 = 0
   subss xmm1, xmm0 ; xmm2 = [0|0|0|1-2*L]
   maxss xmm0, xmm1 ; xmm0 = [0|0|0|fabs(2*L-1)]
-  movaps xmm1, [_1111]
+  movups xmm1, [_1111]
   subss xmm1, xmm0 ; xmm1 = [x|x|x|1-fabs(2*L-1)]
-  movaps xmm0, xmm3
+  movups xmm0, xmm3
   psrldq xmm0, 8
   mulss xmm0, xmm1 ; xmm0 = [x|x|x|c = ( 1 - fabs( 2*L - 1 )) * s]
 
@@ -394,7 +394,7 @@ _hslTOrgb:
   psrldq xmm1, 4 ; xmm1 = [0 L S H]
   ;;movss xmm15, [_60]
   divss xmm1, [_60] ; xmm1 = [x|x|x|H/60]
-  movaps xmm12, xmm1; xmm12 = [x|x|x|H/60]
+  movups xmm12, xmm1; xmm12 = [x|x|x|H/60]
   movss xmm13, [_2] ; xmm13 = [x|x|x|2]
   divss xmm12, xmm13
   roundss xmm12, xmm12, 0xf ;; CONSULTAR : modo de redondeo
@@ -407,7 +407,7 @@ _hslTOrgb:
   maxss xmm1, xmm2 ; xmm0 = [0|0|0|fabs(fmod(H/60, 2)-1)]
   subss xmm13, xmm1; xmm13= [x|x|x|1-fabs(fmod(H/60, 2)-1)]
   mulss xmm13, xmm0
-  movaps xmm1, xmm13  ; xmm1 = [x|x|x|x = C*(1-fabs(fmod(H/60,2)-1))]
+  movups xmm1, xmm13  ; xmm1 = [x|x|x|x = C*(1-fabs(fmod(H/60,2)-1))]
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; calculo de m -> xmm2 ;;
@@ -427,7 +427,7 @@ _hslTOrgb:
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   ;xmm4 = h, xmm3 = pixel, xmm2 = m, xmm1 = x, xmm0 = c
-  movaps xmm15, [_255] ; xmm15 = 255.0
+  movups xmm15, [_255] ; xmm15 = 255.0
 
   addss xmm0, xmm2
   addss xmm1, xmm2 ; Le sumo m a todos los x y todos los c
@@ -442,7 +442,7 @@ _hslTOrgb:
 
 
   pxor xmm15, xmm15 ; xmm15 = 0
-  movaps xmm14, [_todo1]  ; xmm14 = trabajo que hice hasta ahora (1 = nada)
+  movups xmm14, [_todo1]  ; xmm14 = trabajo que hice hasta ahora (1 = nada)
 
   pxor xmm7, xmm7  ; [R|G|B|A]
 

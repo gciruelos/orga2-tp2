@@ -131,20 +131,6 @@ A esto atribuimos principalmente nuestro pobre desempeño frente a la implementa
 Habiendo dicho esto, también es cierto que una vez que pedimos un dato de memoria, este debería guardarse en la cache, siendo su acceso mucho más rápido. Pero la cache sigue siendo aún mas lenta que los registros del procesador, por lo que acceder a memoria (por mas que sea cache) sigue siendo un factor limitante.
 \\
 
-Al ver los resultados, nos propusimos cambiar la implementación de assembler. Nuestra primera versión utilizaba muchos shifts, y dado que en una clase vimos que el desempeño de los shifts era peor que el desempeño de los shuffles, decidimos probarlo. El resultado, como se ve en la primera imagen, no fue del todo el esperado. Sí, hubo una mejora de performance, pero no fue significativa, ni nos permitió acercarnos a la implementación en C, nuestro principal objetivo.
-
-
-\begin{figure}[!hbt] 
-	\centering
-  \includegraphics[scale=0.7]{hsl-shsh.png}
-  \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
-\end{figure}
-
-Como se ve en esta imagen claramente, este cambio solo nos permitió un magro 10\% de ganancia sobre la implementación de C.
-
-Algo importante que notar es que esto no significa que usar shuffles es 10\% más rápido que usar shifts, si no que es bastante más rápido. Esto se debe a que nosotros hacemos el análisis del programa completo, si se analizan por separado las partes en las que esta decisión incumbe, se llega a speedups de hasta el 40\%, dependiendo de la computadora.
-\\
-
 Por otro lado, nuestros algoritmos no dependen fuertemente en saltos condicionales, usan los necesarios, por lo tanto no creemos que este sea un factor limitante del rendimiento.
 \\
 
@@ -178,7 +164,7 @@ Lo primero que se nota en el código de assembler outputeado por GCC es el uso d
 
 Otra posible explicación es que el código generado por GCC carga menos cosas a memoria en cada loop (aunque no tantas). Esto se debe principalmente a que tiene un uso mas ajustado y eficiente de los registros, por lo tanto tiene algunos de sobra para guardar datos a los que va acceder seguido.
 
-Finalmente, queremos hablar de algo que nos llamó la atención del código generado por gcc. Utiliza fuertemente una instrucción llamada \texttt{UCOMISS}. Leyendo el manual, vemos que esta instrucción permite realizar comparaciones y que el resultado se vea plasmado en los el registro \texttt{EFLAGS}. Esto, obviamente nos daría una altisima ganancia en performance, pero cuando aprendimos sobre esta instrucción (mientras analizabamos el output de GCC), ya era demasiado tarde para cambiar totalmente nuestra implementación.
+Finalmente, queremos hablar de algo que nos llamó la atención del código generado por gcc. Utiliza fuertemente una instrucción llamada \texttt{UCOMISS}. Leyendo el manual, vemos que esta instrucción permite realizar comparaciones y que el resultado se vea plasmado en los el registro \texttt{EFLAGS}. Esto, obviamente nos daría una altísima ganancia en performance, pero cuando aprendimos sobre esta instrucción (mientras analizabamos el output de GCC), ya era demasiado tarde para cambiar totalmente nuestra implementación.
 \\
 
 En conclusión, podemos ver que obtuvimos algunas respuestas en cuanto a las preguntas sobre el rendimiento en comparación de nuestro código de assembler vs. el código de C. Como resultado, podemos ver que nuestro déficit de rendimiento radica principalmente en la gran cantidad de accesos a memoria que realizamos y, en un segundo lugar, a que las cuentas y operatorias que realizamos no son óptimas.
@@ -205,7 +191,67 @@ Atribuimos los resultados no solo a la mayor cantidad de comparaciones, si no ta
 
 
 
+\subsubsection*{Experimento}
+Al ver los resultados, nos propusimos cambiar la implementación de assembler. Nuestra primera versión utilizaba muchos shifts, y dado que en una clase aprendimos que el desempeño de los shifts era peor que el desempeño de los shuffles, decidimos probarlo. El resultado, como se ve en la primera imagen, no fue del todo el esperado. Sí, hubo una mejora de performance, pero no fue significativa, ni nos permitió acercarnos a la implementación en C, nuestro principal objetivo.
 
 
+\begin{figure}[!hbt] 
+	\centering
+  \includegraphics[scale=0.7]{hsl-shsh.png}
+  \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
+\end{figure}
+
+Como se ve en esta imagen claramente, este cambio solo nos permitió un magro 10\% de ganancia sobre la implementación de C.
+
+Algo importante que notar es que esto no significa que usar shuffles es 10\% más rápido que usar shifts, si no que es bastante más rápido. Esto se debe a que nosotros hacemos el análisis del programa completo, si se analizan por separado las partes en las que esta decisión incumbe, se llega a speedups de hasta el 40\%, dependiendo de la computadora.
+\\
+
+\subsubsection*{Experimento}
+Otro experimento que se nos ocurrió realizar es la comparación entre los accesos alineados y desalinaedos a memoria. En clase aprendimos que el procesador puede optimizar los accesos alineados a memoria.
+La razón de este fenómeno radica en la cache, como vimos en Organización del Computador I, a veces algunos accesos a memoria pueden ser ``a caballo'', es decir, estar en 2 lineas distintas de la cache, por lo tanto se podría llegar a 2 potenciales cache misses en un solo acceso a memoria.
+
+
+Por eso es que acceder a memoria alineadamente es muy importante\footnote{http://www.ibm.com/developerworks/library/pa-dalign/} , llegando al punto que algunas arquitecturas solo permiten acceder a memoria alineadamente (de hecho la arquitectura Intel, cuando hace operaciones con registros xmm y uno de los operandos es una dirección de memoria desreferenciada, se asume que es una dirección alineada).
+
+Sin perjucio de lo anterior, y viendo los experimentos que ya realizamos, vimos que una vez que la información está en la cache las velocidades son mucho más rápidas, y deja de importar tanto si un acceso es alineado o no, dado que la información que deseamos obtener ya esta cacheada.
+
+Veamos los resultados:
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{hsl-alineamiento.png}
+  \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
+\end{figure}
+
+Los resultados reflejan lo último que dijimos, la performance es realmente similar. Como explicamos, esto se debe a que una vez que los datos estan cacheados, no importa tanto si accedemos a ellos alineada o desalineadamente.
+
+Sin embargo, en este experimento es interesante ponderar el caso promedio (indicado por la barra gris). Se nota que los accesos desalineados tardan más en promedio. Esto se puede deber a que, como al correr los tests la computadora esta corriendo otras tareas al mismo tiempo, debe desalojar datos de la cache y poner otros de otras tareas.
+
+Esto provocaría que cuando nuestro programa quiera volver a obtener información que tenia previamente cacheada, deba volver a acceder a memoria principal, pagando esa penalidad. Por lo tanto, a mas grande sea la imagen y a más carga tenga el procesador (específicamente su cache), más alta va a ser la penalidad por acceder desalineadamente a memoria.
+
+\subsubsection*{Experimento}
+El último experimento que nos propusimos hacer para este código es el de comparar call vs. jmp vs. macro.
+
+En hsl tenemos 2 subrutinas que convierten entre esquemas de colores (hslTOrgb y hslTOrgb), entonces nos encontramos con el problema de como correr ese código. En la primera variante del código (asm1), como el código de esas rutinas está escrito en C, no nos queda otra que usar calls.
+
+Sin embargo, en la segunda versión del código, la más interesante para analizar en este experimento, nosotros tenemos que implementar las rutinas. Por lo tanto, podemos aprovecharnos de esto para ``que no nos importe'' la convención C, dado que conocemos al momento de llamar a las rutinas que registros estamos usando y que registros no, utilizar en la rutina solo aquellos que podemos pisar.
+
+De esta manera, podríamos directamente saltar a la rutina de la tarea, ahorrandonos algunos pushs a la pila. Otra forma tambien sería pegar el código de la rutina en la rutina principal, total no pisa ningún registro importante (esta solución es exactamente la misma que la de los macros, solo que la de los macros se hace en tiempo de compilación).
+
+Otro elemento que entra en juego es el del branch predictor: cuando hay un salto, el flujo de instrucciones posible del programa se divide en 2, y el pipeline del procesador sigue una de las ramas, que potencialmente puede ser la no tomada y entonces el procesador puede haber hecho trabajo en vano y haber perdido ciclos de reloj.
+
+Sin embargo, como el camino que va a tomar en general es el de saltar, dado que las imagenes son grandes, va a no saltar solo una vez (la última), creemos que el efecto de este fenómeno va a ser mínimo.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{hsl-jmpcall.png}
+  \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
+\end{figure}
+
+Como dijimos anteriormente, para estos resultados se deben mas que nada a los overheads que tienen las operaciones de call y jmp más que a un tema de branch prediction.
+
+El overhead del call es bastante, debe pushear la dirección de rotorno, además de algunas operaciones con la pila que hacemos al entrar a la función. Otra operatoria, no muy costosa, que tienen el call y el jmp, es la cuenta que tienen que hacer para obtener la dirección a la que tienen que saltar (nuevo IP).
+
+Sin embargo, en terminos relativos la performance es casi igual (como se ve perfectamente en el gráfico), la diferencia entre usar calls y usar macros es de menos del 10\%.
 
 

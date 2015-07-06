@@ -111,7 +111,7 @@ Es decir, mantener este puntero nos permite iterar la matriz por bloques de 3x6 
 
 El segundo problema es inherente a la forma de iterar que elegimos: dado que las imágenes que procesamos cumplen que $4 | w$, siempre que estemos indexando de la forma indicada terminaremos procesando 2 píxeles de más al final de cada fila (es decir, los dos píxeles del borde). La forma que encontramos de resolver esto es a través de una simple comparación: en cada iteración verificaremos si estamos en el borde; en caso de estarlo, simplemente nos correremos dos píxeles hacia atrás y volveremos a procesar los dos píxeles anteriores. El beneficio de este método es que logra ser conceptualmente muy simple, y agrega una cantidad de instrucciones insignificante para el cálculo de complejidad. Además, es muy simple de implementar, en comparación con otras alternativas como comenzar a procesar de a un píxel a partir del borde.
 
-El tercer y último problema es cómo efectuar los cálculos de blur. Intentamos hacerlo de la forma que nos pareció más intuitivo, nos armamos registros con la forma:
+El tercer y último problema es cómo efectuar los cálculos de blur. Esto, aunque no es un problema grave, es algo que se puede hacer de varias maneras distintas, por lo tanto se le debe dedicar un tiempo a elegir de que manera llevarlo a cabo. Intentamos hacerlo de la forma que nos pareció más intuitivo, nos armamos registros con la forma:
 
 $$xmm_2 = \begin{pmatrix} P_2 + P_8 + P_{14} & P_1 + P_7 + P_{13} \end{pmatrix}$$
 
@@ -180,15 +180,15 @@ Al comparar utilizando la imagen de diferencias la imagen generada por el blur d
 \endminipage\hfill
 \minipage{0.2\textwidth}
   \includegraphics[width=\linewidth]{lenablurdiffR.png}
-  \caption{R channel}
+  \caption{diff canal R}
 \endminipage\hfill
 \minipage{0.2\textwidth}
   \includegraphics[width=\linewidth]{lenablurdiffG.png}
-  \caption{G channel}
+  \caption{diff canal G}
 \endminipage\hfill
 \minipage{0.2\textwidth}
   \includegraphics[width=\linewidth]{lenablurdiffB.png}
-  \caption{B channel}
+  \caption{diff canal B}
 \endminipage\hfill
 \minipage{0.2\textwidth}%
   \includegraphics[width=\linewidth]{lenablurasm1.png}
@@ -218,7 +218,7 @@ Además, la performance de nuestros algoritmos de Blur no se verá afectada por 
 \begin{figure}[!b]
 	\centering
   \includegraphics[width=10cm]{blur-imagenes-chicas.png}
-  \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadrádas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas.}
+  \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadrádas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas. El número del eje horizontal quiere decir el ancho (igual al alto) de la imágen, es decir que la cantidad de píxeles es ese número al cuadrado}
 \end{figure}
 
 Observemos que, efectivamente, se cumple lo que esperábamos: los ciclos de reloj crecen de forma cuadrática en relación al tamaño de la imagen. Además, notese que tienen relativamente poco desvío una implementación con respecto a la otra, suponemos que esto quiere decir que tienen comportamientos regulares con respecto al pipeline y sus accesos a memoria (de otra forma, tendríamos más picos en el gráfico). Nos sorprendió mucho que la implementación de ASM1 se asimile tanto a la de ASM2, ya que esperábamos una mayor amplitud entre las curvas; por esto, corrimos un nuevo experimento tomando tamaños de imagen mucho más grandes:
@@ -226,7 +226,8 @@ Observemos que, efectivamente, se cumple lo que esperábamos: los ciclos de relo
 \begin{figure}[!hbt] 
 	\centering
   \includegraphics[width=10cm]{blur-imagenes-grandes.png}
-  \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadradas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas.}
+  \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadradas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas. Elegimos estas dimensiones porque eran suficientemente grandes como para que se note la diferencia, pero suficientemente chichas como para que el
+  experimento termine de correr en un tiempo razonable.}
 \end{figure}
 
 Esta vez, encontramos una brecha mucho más marcada entre las distintas implementaciones, lo que nos asegura que efectivamente el crecimiento de las constantes escondidas en la complejidad temporal está haciendo una diferencia importante a medida que aumenta la escala. Para finalizar, tomamos un ejemplo más de cerca para observar más precisamente las disparidades:
