@@ -121,6 +121,71 @@ El acceso a memoria en nuestros códigos de Assembler es lo mínimo indispensabl
 
 La diferencia entre operar con punto flotante y con enteros es significativa. Aunque ambas implementaciones en Assembler son mucho mas rápidas que la implementación de C, la que opera con enteros es nuevamente (bastante) más rápida que la que opera con punto flotante. Esto se debe a que en general las operaciones con enteros son mucho mas rápidas que las de punto flotante.
 
+\subsubsection*{Experimento}
+
+Un experimento que nos pareció interesante hacer y terminó siendo de los más interesantes fue el de loop unrolling. Loop unrolling es una tecnica de optimizacion de ciclos que se basa en hacer varias iteraciones en un mimso ciclo.
+Esto perimte eliminar operaciones aritmeticas y comparaciones que se hacen en cada ciclo. Además, se minimiza la penalización por branch mispredictions, dado que al haber menos ciclos, hay menos oportunidades para que el procesador pueda equivocarse (aunque esto no es totalmente cierto en general, en este caso particular es así).
+
+Sin embargo, el loop unrolling tambien trae consecuencias negativas. Una obvia es que aumenta el tamaño el tamaño del ejecutable. Esto parece inofensivo, pero es claro que cuando el tamaño del bucle que se desenrolló pasa un cierto limite, no puede entrar entero en la cache, por lo tanto el número de cache misses se va a disparar.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{merge-unroll.png}
+  \caption{Comparación de la cantidad de ciclos de reloj utilizada por diferentes variaciones de merge (asm2). Las variaciones se basan en cuantas iteraciones se desenrollan dentro de un mismo ciclo. Tamaño de la muestra: 200 imágenes de $512 \times 512$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
+\end{figure}
+
+Como se ve en la imagen, los resultados reflejan bastante bien el análisis a priori que hicimos. Centremosnos en explicar la performance desastrosa de la versión que desenrolla de a 4096 iteraciones.
+
+La razón es claro que radica en lo que vimos anteriormente, es decir, el tamaño de los binarios. Comparemoslos: \texttt{ASM\_merge2.o} en el caso unroll128 pesa 9.8KB, mientras que en caso unroll4096 pesa 232.2KB.
+
+Está clarisimo entonces que es mucho mas probable que el primer código este todo el tiempo entero en el cache, mientras que el otro no. Otro problema que aparece con binarios tan grandes es el de los pagefaults. Como ese binario ocupa muchas páginas, puede suceder que una página no este presente y deba cargarsela del disco (poco probable igualmente, dado que el binario no es tan grande como para no tenerlo todo en memoria principal).
+
+La herramienta \texttt{perf} nos permite obtener los siguientes datos:
+
+\begin{tabular}{ | l | c |  }
+  \hline
+  
+  & cache-misses \\ \hline
+  128 & 4,979,147\\ \hline
+  4096 & 5,490,835\\ \hline
+\end{tabular}
+
+Es decir, en la segunda versión tiene más de medio millón de cache misses que la primera. Si se le descuenta los cache misses de las rutinas que ambas comparten (leer y escribir bmp), la distancia relativa es aún mayor.
+
+Por todas estas razones es que responsabilizamos más que nada a los cache misses por el rendimiento superior del binario más chico por sobre el del más grande.
+
+Una pregunta interesante es cual es la cantidad óptima de iteraciones a desenrollar. Testeando varios números posibles, encontramos que está cerca de 128 (siendo 128 la potencia de 2 más cercana). Igualmente esto claramente depende de cada computadora, el tamaño de su cache y en general el modelo del procesador.
+
+
+\subsubsection*{Experimento}
+El otro experimento que nos fue sugerido para este código es el de que pasa si el precomputo que hacemos del vector de $value$ y $1-value$ deja de ser un precomputo y pasa a hacerse en cada ciclo.
+
+
+Para llevar a cabo este experimento, tuvimos que cambiar un poco el código, dado que nos interesaba dejar dentro del ciclo solamente la cuenta, no queríamos agregarle accesos a memoria a cada ciclo.
+
+Lo que podemos testear con este experimento es si este cambio impacta mucho o el procesador se da cuenta de que la operatoria siempre da lo mismo y el costo de hacerlo se diluye en el pipeline.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{merge-afuera.png}
+  \caption{Comparación de la cantidad de ciclos de reloj utilizada por diferentes variaciones de merge (asm2). Las variaciones se basan poner fuera/dentro del ciclo el cómputo de ciertos valores. Tamaño de la muestra: 200 imágenes de $512 \times 512$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
+\end{figure}
+
+Con los resultados, vemos que efectivamente meter el cómputo de esas constantes dentro del ciclo es algo muy caro. 
+
+Nosotros creemos que el pipeline del procesador no puede optimizar ese cómputo porque no es lo suficientemente poderoso como para darse cuenta de que puede hacerlo. Las cosas que puede optimizar y ni computar el pipeline son cosas como
+
+
+\begin{lstlisting}
+padd xmm4, xmm3
+pxor xmm4
+\end{lstlisting}
+
+Donde, explotando la ejecución fuera de orden y otras tecnicas similares, puede no ejecutar el \texttt{padd}. Sin embargo, el cómputo que aquí pretendemos que se optimice es mucho mas complejo, no solo en cantidad de instrucciones (10), si no en la distancia temporal que hay entre sus momentos de ejecución (16 instrucciones).
+
+Por estas razones creemos que al microprocesador no le es posible optimizar y no ejecutar esas instrucciones, y debemos pagar la penalidad de realizarlos cada vez.
+
+
 
 
 
