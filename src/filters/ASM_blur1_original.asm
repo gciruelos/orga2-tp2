@@ -34,13 +34,11 @@ ASM_blur1:
 
   ; reservar espacio para dos filas
   shl rdi, 2   ; rdi*4
-  add rdi, SIZE_PIXEL
   call malloc  ; rax: pointer to temp row 1
   mov r14, rax ; r14: temp row 1
 
   mov rdi, rbx
   shl rdi, 2   ; rdi*4, cada pixel tiene 4 bytes
-  add rdi, SIZE_PIXEL
   call malloc  ; rax: pointer to temp row 0
   mov r15, rax ; r15: temp row 0
 
@@ -101,7 +99,13 @@ ASM_blur1:
 .loop_columns:
 
   ; sumo la primera fila de pixeles (res: xmm1)
-  movdqu xmm1, [r15 + r8*SIZE_PIXEL] ; xmm1 = [x|x|x|x B|G|R|A B|G|R|A B|G|R|A]
+  movq xmm1, [r15 + r8*SIZE_PIXEL] ; xmm1 = [x|x|x|x B|G|R|A B|G|R|A B|G|R|A]
+  movd xmm2, [r15 + r8*SIZE_PIXEL+8] ; xmm1 = [x|x|x|x B|G|R|A B|G|R|A B|G|R|A]
+  pslldq xmm2, 8
+  por xmm2, xmm1
+  movaps xmm1, xmm2
+
+
 
   pslldq xmm1, 4
   psrldq xmm1, 4
@@ -131,10 +135,37 @@ ASM_blur1:
   paddw xmm2, xmm3     ; xmm1 = [B2|G2|R2|A2 B1+B3|G1+G3|R1+R3|A1+A3]
 
   ; sumo la tercera fila de pixeles (res: xmm3)
+  ; mov r9, rdi
+  ; add r9, rbx          ; agrego una fila al contador de pixeles
+  ; dec r9               ; arranco un pixel antes en xmm3 para evitar el segfault al final
+  ;                      ; e.g. XAAA   xmm1 = ZAAA
+  ;                      ;      ZBOB   xmm2 = ZBOB
+  ;                      ;      ZCCCS  xmm3 = SCCC
+  ;                      ; entonces lo que hago es:
+  ;                      ;             xmm1 = ZAAA
+  ;                      ;             xmm2 = ZBOB
+  ;                      ;             xmm3 = CCCZ y limpio con bitshift.
+  ; movdqu xmm3, [r13 + r9*SIZE_PIXEL] ; xmm3 = [D|C|B|A], A es basura
+  ; psrldq xmm3, 4       ; xmm3 = [0|0|0|0 B3|G3|R3|A3 B2|G2|R2|A2 B1|G1|R1|A1]
+  ;                      ; tiro pixel basura
+
+  ; movdqu xmm4, xmm3    ; xmm4 = xmm3
+  ; punpcklbw xmm3, xmm6 ; xmm3 = [0|B2|0|G2|0|R2|0|A2 0|B1|0|G1|0|R1|0|A1]
+  ; punpckhbw xmm4, xmm6 ; xmm4 = [0|0|0|0|0|0|0|0 0|B3|0|G3|0|R3|0|A3]
+  ; paddw xmm3, xmm4     ; xmm3 = [B2|G2|R2|A2 B1+B3|G1+G3|R1+R3|A1+A3]
+
+  ; sumo la tercera fila (sin 'hack', da igual)
   mov r9, rdi
   add r9, rbx
-  movdqu xmm3, [r13 + r9*SIZE_PIXEL - SIZE_PIXEL]
-  psrldq xmm3, 4
+  
+  movq xmm3, [r13 + r9*SIZE_PIXEL] ; [D|C|B|A]
+  movd xmm4, [r13 + r9*SIZE_PIXEL+8] ; [D|C|B|A]
+  pslldq xmm4, 8
+  por xmm4, xmm3
+  movaps xmm3, xmm4
+
+  pslldq xmm3, 4
+  psrldq xmm3, 4 ; xmm3 = [0|C|B|A]
 
   movdqu xmm4, xmm3
   punpcklbw xmm3, xmm6 ; [B|A]
