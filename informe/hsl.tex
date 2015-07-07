@@ -116,7 +116,7 @@ Al igual que en los anteriores filtros, esperábamos que el rendimiento de nuest
 
 \begin{figure}[!hbt] 
 	\centering
-  \includegraphics[width=10cm]{hsl.png}
+  \includegraphics[width=10cm]{images/hsl.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por diferentes variantes de hsl. Para tener una medida absoluta: la cantidad de ciclos de reloj promedio de C -O3 es 31,620,627. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
@@ -147,7 +147,7 @@ Comentando partes de códigos, pudimos obtener una partición tentativa de cuant
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{hsl-div.png}
+  \includegraphics[scale=0.7]{images/hsl-div.png}
   \caption{Análisis comparativo del porcentaje de tiempo dedicado a cada instancia. Tamaño de la muestra: 100 imágenes de $16\times 10^4$ píxeles}
 \end{figure}
 
@@ -178,7 +178,7 @@ Entonces nos propusimos a diseñar 2 imágenes, una tal que siempre entre al pri
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{hsl-ifs.png}
+  \includegraphics[scale=0.7]{images/hsl-ifs.png}
   \caption{Análisis comparativo de la cantidad de ciclos de clock que tardan los programas en procesar una imagen de $16\times 10^4$ píxeles. Se indica con una barra de error la media podada. Tamaño de la muestra: 100 imágenes.}
 \end{figure}
 
@@ -197,7 +197,7 @@ Al ver los resultados, nos propusimos cambiar la implementación de assembler. N
 
 \begin{figure}[!hbt] 
 	\centering
-  \includegraphics[scale=0.7]{hsl-shsh.png}
+  \includegraphics[scale=0.7]{images/hsl-shsh.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
@@ -219,7 +219,7 @@ Veamos los resultados:
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{hsl-alineamiento.png}
+  \includegraphics[scale=0.7]{images/hsl-alineamiento.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
@@ -244,7 +244,7 @@ Sin embargo, como el camino que va a tomar en general es el de saltar, dado que 
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{hsl-jmpcall.png}
+  \includegraphics[scale=0.7]{images/hsl-jmpcall.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 

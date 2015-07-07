@@ -175,23 +175,23 @@ Al comparar utilizando la imagen de diferencias la imagen generada por el blur d
 
 \begin{figure}[!htb]
 \minipage{0.2\textwidth}
-  \includegraphics[width=\linewidth]{lenablurc.png}
+  \includegraphics[width=\linewidth]{images/lenablurc.png}
   \caption{Blur C}
 \endminipage\hfill
 \minipage{0.2\textwidth}
-  \includegraphics[width=\linewidth]{lenablurdiffR.png}
+  \includegraphics[width=\linewidth]{images/lenablurdiffR.png}
   \caption{diff canal R}
 \endminipage\hfill
 \minipage{0.2\textwidth}
-  \includegraphics[width=\linewidth]{lenablurdiffG.png}
+  \includegraphics[width=\linewidth]{images/lenablurdiffG.png}
   \caption{diff canal G}
 \endminipage\hfill
 \minipage{0.2\textwidth}
-  \includegraphics[width=\linewidth]{lenablurdiffB.png}
+  \includegraphics[width=\linewidth]{images/lenablurdiffB.png}
   \caption{diff canal B}
 \endminipage\hfill
 \minipage{0.2\textwidth}%
-  \includegraphics[width=\linewidth]{lenablurasm1.png}
+  \includegraphics[width=\linewidth]{images/lenablurasm1.png}
   \caption{Blur ASM}
 \endminipage
 \end{figure}
@@ -217,7 +217,7 @@ Además, la performance de nuestros algoritmos de Blur no se verá afectada por 
 
 \begin{figure}[!b]
 	\centering
-  \includegraphics[width=10cm]{blur-imagenes-chicas.png}
+  \includegraphics[width=10cm]{images/blur-imagenes-chicas.png}
   \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadrádas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas. El número del eje horizontal quiere decir el ancho (igual al alto) de la imágen, es decir que la cantidad de píxeles es ese número al cuadrado}
 \end{figure}
 
@@ -225,7 +225,7 @@ Observemos que, efectivamente, se cumple lo que esperábamos: los ciclos de relo
 
 \begin{figure}[!hbt] 
 	\centering
-  \includegraphics[width=10cm]{blur-imagenes-grandes.png}
+  \includegraphics[width=10cm]{images/blur-imagenes-grandes.png}
   \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadradas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas. Elegimos estas dimensiones porque eran suficientemente grandes como para que se note la diferencia, pero suficientemente chichas como para que el
   experimento termine de correr en un tiempo razonable.}
 \end{figure}
@@ -234,7 +234,7 @@ Esta vez, encontramos una brecha mucho más marcada entre las distintas implemen
 
 \begin{figure}[!hbt] 
 	\centering
-  \includegraphics[width=17cm]{blur-all.png}
+  \includegraphics[width=17cm]{images/blur-all.png}
   \caption{Performance de C compilado con -o0, C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos una imagen roja de $400 \times 400$, con píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas.}
 \end{figure}
 

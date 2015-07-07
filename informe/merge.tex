@@ -99,7 +99,7 @@ Esperamos también que la performance mejore aún más en la segunda implementac
 
 \begin{figure}[!hbt] 
   \centering
-  \includegraphics[scale=0.7]{merge-all.png}
+  \includegraphics[scale=0.7]{images/merge-all.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por diferentes variantes de merge. Para tener una medida absoluta: la cantidad de ciclos de reloj promedio de C -O3 es 4,293,199. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
@@ -130,7 +130,7 @@ Sin embargo, el loop unrolling tambien trae consecuencias negativas. Una obvia e
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{merge-unroll.png}
+  \includegraphics[scale=0.7]{images/merge-unroll.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por diferentes variaciones de merge (asm2). Las variaciones se basan en cuantas iteraciones se desenrollan dentro de un mismo ciclo. Tamaño de la muestra: 200 imágenes de $512 \times 512$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
@@ -167,7 +167,7 @@ Lo que podemos testear con este experimento es si este cambio impacta mucho o el
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{merge-afuera.png}
+  \includegraphics[scale=0.7]{images/merge-afuera.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por diferentes variaciones de merge (asm2). Las variaciones se basan poner fuera/dentro del ciclo el cómputo de ciertos valores. Tamaño de la muestra: 200 imágenes de $512 \times 512$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 

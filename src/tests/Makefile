@@ -15,5 +15,3 @@ runTests: runTests.c
 
 clean:
 	rm  -f *.o generate runTests
-
-

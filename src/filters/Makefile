@@ -52,7 +52,11 @@ o3fastshuffles:
 	make shuffles
 	make o3fast
 
-shuffles: cp ASM_hsl2.asm ASM_hsl2_shuffles.asm
-shifts: cp ASM_hsl2.asm ASM_hsl2_shifts.asm
+shuffles:
+	cp ASM_hsl2.asm ASM_hsl2_shuffles.asm
+	
+shifts:
+	cp ASM_hsl2.asm ASM_hsl2_shifts.asm
 
-clean: rm  -f *.o
+clean:
+	rm  -f *.o
