@@ -129,10 +129,8 @@ Esto es muy caro para nosotros, dado que los accesos a memoria son de lo mas lim
 A esto atribuimos principalmente nuestro pobre desempeño frente a la implementación de C. Veremos más adelante otras circunstancias que apoyan esta teoría.
 
 Habiendo dicho esto, también es cierto que una vez que pedimos un dato de memoria, este debería guardarse en la cache, siendo su acceso mucho más rápido. Pero la cache sigue siendo aún mas lenta que los registros del procesador, por lo que acceder a memoria (por mas que sea cache) sigue siendo un factor limitante.
-\\
 
 Por otro lado, nuestros algoritmos no dependen fuertemente en saltos condicionales, usan los necesarios, por lo tanto no creemos que este sea un factor limitante del rendimiento.
-\\
 
 La siguiente limitación de nuestra implementación es la operatoria de las conversiones de RGB a HSL y viceversa. Esto se debe a que las operaciones que se deben hacer son largas y costosas, por mas que esten lo mejor optimizadas posibles.
 
@@ -223,7 +221,7 @@ Veamos los resultados:
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
-Los resultados reflejan lo último que dijimos, la performance es realmente similar. Como explicamos, esto se debe a que una vez que los datos estan cacheados, no importa tanto si accedemos a ellos alineada o desalineadamente.
+Los resultados reflejan lo último que dijimos, la performance es realmente similar. Como explicamos, esto se debe a que una vez que los datos están cacheados, no importa tanto si accedemos a ellos alineada o desalineadamente.
 
 Sin embargo, en este experimento es interesante ponderar el caso promedio (indicado por la barra gris). Se nota que los accesos desalineados tardan más en promedio. Esto se puede deber a que, como al correr los tests la computadora esta corriendo otras tareas al mismo tiempo, debe desalojar datos de la cache y poner otros de otras tareas.
 
@@ -236,11 +234,11 @@ En hsl tenemos 2 subrutinas que convierten entre esquemas de colores (hslTOrgb y
 
 Sin embargo, en la segunda versión del código, la más interesante para analizar en este experimento, nosotros tenemos que implementar las rutinas. Por lo tanto, podemos aprovecharnos de esto para ``que no nos importe'' la convención C, dado que conocemos al momento de llamar a las rutinas que registros estamos usando y que registros no, utilizar en la rutina solo aquellos que podemos pisar.
 
-De esta manera, podríamos directamente saltar a la rutina de la tarea, ahorrandonos algunos pushs a la pila. Otra forma tambien sería pegar el código de la rutina en la rutina principal, total no pisa ningún registro importante (esta solución es exactamente la misma que la de los macros, solo que la de los macros se hace en tiempo de compilación).
+De esta manera, podríamos directamente saltar a la rutina de la tarea, ahorrándonos algunos pushs a la pila. Otra forma también sería pegar el código de la rutina en la rutina principal, total no pisa ningún registro importante (esta solución es exactamente la misma que la de los macros, solo que la de los macros se hace en tiempo de compilación).
 
 Otro elemento que entra en juego es el del branch predictor: cuando hay un salto, el flujo de instrucciones posible del programa se divide en 2, y el pipeline del procesador sigue una de las ramas, que potencialmente puede ser la no tomada y entonces el procesador puede haber hecho trabajo en vano y haber perdido ciclos de reloj.
 
-Sin embargo, como el camino que va a tomar en general es el de saltar, dado que las imagenes son grandes, va a no saltar solo una vez (la última), creemos que el efecto de este fenómeno va a ser mínimo.
+Sin embargo, como el camino que va a tomar en general es el de saltar, dado que las imágenes son grandes, va a no saltar solo una vez (la última), creemos que el efecto de este fenómeno va a ser mínimo.
 
 \begin{figure}[H] 
 	\centering
@@ -250,8 +248,8 @@ Sin embargo, como el camino que va a tomar en general es el de saltar, dado que 
 
 Como dijimos anteriormente, para estos resultados se deben mas que nada a los overheads que tienen las operaciones de call y jmp más que a un tema de branch prediction.
 
-El overhead del call es bastante, debe pushear la dirección de rotorno, además de algunas operaciones con la pila que hacemos al entrar a la función. Otra operatoria, no muy costosa, que tienen el call y el jmp, es la cuenta que tienen que hacer para obtener la dirección a la que tienen que saltar (nuevo IP).
+El overhead del call es bastante, debe pushear la dirección de retorno, además de algunas operaciones con la pila que hacemos al entrar a la función. Otra operatoria, no muy costosa, que tienen el call y el jmp, es la cuenta que tienen que hacer para obtener la dirección a la que tienen que saltar (nuevo IP).
 
-Sin embargo, en terminos relativos la performance es casi igual (como se ve perfectamente en el gráfico), la diferencia entre usar calls y usar macros es de menos del 10\%.
+Sin embargo, en términos relativos la performance es casi igual (como se ve perfectamente en el gráfico), la diferencia entre usar calls y usar macros es de menos del 10\%.
 
 

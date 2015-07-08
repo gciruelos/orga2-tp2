@@ -123,10 +123,10 @@ La diferencia entre operar con punto flotante y con enteros es significativa. Au
 
 \subsubsection*{Experimento}
 
-Un experimento que nos pareció interesante hacer y terminó siendo de los más interesantes fue el de loop unrolling. Loop unrolling es una tecnica de optimizacion de ciclos que se basa en hacer varias iteraciones en un mimso ciclo.
-Esto perimte eliminar operaciones aritmeticas y comparaciones que se hacen en cada ciclo. Además, se minimiza la penalización por branch mispredictions, dado que al haber menos ciclos, hay menos oportunidades para que el procesador pueda equivocarse (aunque esto no es totalmente cierto en general, en este caso particular es así).
+Un experimento que nos pareció interesante hacer y terminó siendo de los más interesantes fue el de loop unrolling. Loop unrolling es una tecnica de optimización de ciclos que se basa en hacer varias iteraciones en un mismo ciclo.
+Esto permite eliminar operaciones aritméticas y comparaciones que se hacen en cada ciclo. Además, se minimiza la penalización por branch mispredictions, dado que al haber menos ciclos, hay menos oportunidades para que el procesador pueda equivocarse (aunque esto no es totalmente cierto en general, en este caso particular es así).
 
-Sin embargo, el loop unrolling tambien trae consecuencias negativas. Una obvia es que aumenta el tamaño el tamaño del ejecutable. Esto parece inofensivo, pero es claro que cuando el tamaño del bucle que se desenrolló pasa un cierto limite, no puede entrar entero en la cache, por lo tanto el número de cache misses se va a disparar.
+Sin embargo, el loop unrolling también trae consecuencias negativas. Una obvia es que aumenta el tamaño del ejecutable. Esto parece inofensivo, pero es claro que cuando el tamaño del bucle que se desenrolló pasa un cierto limite, no puede entrar entero en la cache, por lo tanto el número de cache misses se va a disparar.
 
 \begin{figure}[H] 
 	\centering
@@ -181,12 +181,6 @@ padd xmm4, xmm3
 pxor xmm4
 \end{lstlisting}
 
-Donde, explotando la ejecución fuera de orden y otras tecnicas similares, puede no ejecutar el \texttt{padd}. Sin embargo, el cómputo que aquí pretendemos que se optimice es mucho mas complejo, no solo en cantidad de instrucciones (10), si no en la distancia temporal que hay entre sus momentos de ejecución (16 instrucciones).
+Donde, explotando la ejecución fuera de orden y otras técnicas similares, puede no ejecutar el \texttt{padd}. Sin embargo, el cómputo que aquí pretendemos que se optimice es mucho mas complejo, no solo en cantidad de instrucciones (10), si no en la distancia temporal que hay entre sus momentos de ejecución (16 instrucciones).
 
 Por estas razones creemos que al microprocesador no le es posible optimizar y no ejecutar esas instrucciones, y debemos pagar la penalidad de realizarlos cada vez.
-
-
-
-
-
-
