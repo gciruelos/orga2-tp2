@@ -32,6 +32,8 @@ typedef struct __attribute__((packed)) s_RGBA {
 void to24(uint32_t w, uint32_t h, uint8_t* src32, uint8_t* dst24);
 void to32(uint32_t w, uint32_t h, uint8_t* src24, uint8_t* dst32);
 
+void    C_sobel(uint32_t w, uint32_t h, uint8_t* data);
+
 void    C_blur(uint32_t w, uint32_t h, uint8_t* data);
 void ASM_blur1(uint32_t w, uint32_t h, uint8_t* data);
 void ASM_blur2(uint32_t w, uint32_t h, uint8_t* data);

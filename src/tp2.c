@@ -38,6 +38,10 @@ int main(int argc, char* argv[]){
   
   //(1) ejecutar filtro
   int result;
+
+  if(!strcmp(opt.filter,"sobel") && opt.valid==2) {
+    result = run_sobel(opt.c_asm, opt.ops[0], opt.ops[1]);
+  } else
   if(!strcmp(opt.filter,"blur") && opt.valid==2) {
     result = run_blur(opt.c_asm, opt.ops[0], opt.ops[1]);
   } else
@@ -66,6 +70,7 @@ void print_help(char* name) {
     printf ( "\n" );
     printf ( "Filtro:\n" );
     printf ( "      <c/asm1/asm2> blur <src> <dst>\n");
+    printf ( "      <c/asm1/asm2> sobel <src> <dst>\n");
     printf ( "      <c/asm1/asm2> merge <src1> <src2> <dst> <value>\n");
     printf ( "      <c/asm1/asm2> hsl <src> <dst> <h> <s> <l>\n");
     printf ( "\n" );
