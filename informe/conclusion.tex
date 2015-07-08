@@ -1,1 +1,15 @@
-\section{Conclusiónes}
+\section{Conclusión}
+
+La primer conclusión de este trabajo es que programar en Assembly, aunque difícil, es remunerador: si se programa usando el paradigma SIMD de buena manera, la performance que se obtiene es comparativamente alta. Por esta razón creemos que es importante conocer el paradigma y la tecnología SSE, dado que son la herramienta que nos permite hacer el tuneo más fino de nuestras aplicaciones. A pesar de esto, y como vimos en el caso de HSL, utilizar Assembly puede ser un arma de doble filo: el control cuasi-absoluto del sistema que obtenemos posiblemente termine resultando en algoritmos eficientes que escribiendo en un lenguaje de más alto nivel lo suficientemente optimizado y estudiado. En un punto, esto es esperable: la dificultad en poder estimar qué es lo que hacen todas las capas de abstracción del procesador a medida que escribimos nuestro código deriva en perdidas de posibles caminos para optimizar nuestro algoritmo.
+
+La segunda conclusión es que hay que medir con mucho cuidado en qué situaciones realmente conviene utilizar Assembly: el costo en horas de programar las rutinas en Assembly es mucho más alto que programarlas en C, y la diferencia en velocidad puede terminar resultándonos poco favorable. En sí, lo más conveniente es tratar de evitar Assembly a no ser que realmente veamos una oportunidad de optimización demasiado notoria.
+
+La tercer conclusión es que hay que tener mucho cuidado con qué instrucciones utilizamos en nuestro código: instrucciones (o conjuntos de ellas) cuya semántica es equivalente pueden tener diferencias operacionales que causen una pérdida de eficiencia difícil de cuantificar en nuestros algoritmos. Más aun, como vimos en clase, estas diferencias operacionales pueden derivar en grandes diferencias de performance si variamos los modelos de procesador que utilizamos.
+
+La cuarta  y última conclusión, es que la complejidad temporal como la medimos es engañosa.
+Si bien podemos desde un punto de vista teórico calcular el orden de complejidad de un algoritmo, este no termina reflejando en la realidad cuál va a ser su performance: los procesadores modernos tienen demasiadas capas de abstracción que el modelo matemático no logra reflejar.
+Mecanismos como la caché y el pipelining efectivamente destruyen cualquier tipo de predictibilidad con respecto al tiempo de ejecución del algoritmo.
+De la misma forma, los compiladores podrían terminar transformando un algoritmo con cierta complejidad en uno con mejores características. En concreto, la medida de complejidad temporal sólo nos proporciona una medida de ``cómo va a crecer'', y no tanto de ``cuánto va a crecer''. 
+
+
+

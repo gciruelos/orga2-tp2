@@ -5,6 +5,47 @@
 ;                                                                           ;
 ; ************************************************************************* ;
 
+%macro mainloop 1
+
+.loop:
+  cmp rcx, rax   ; si iterador = h*w, listo, terminamos
+  je .fin
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;; tengo que hacer xmm1*xmm3 + xmm2*xmm4 ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+%rep %1
+  movq xmm1, [r14 + rbx] ; xmm1 = [x|x|x|x|x|x|x|x | B|G|R|A|B|G|R|A]
+  movq xmm2, [r15 + rbx] ; xmm2 = [x|x|x|x|x|x|x|x | B|G|R|A|B|G|R|A]
+
+  punpcklbw xmm1, xmm6     ; xmm1 =  [0|B|0|G|0|R|0|A | 0|B|0|G|0|R|0|A] 
+  punpcklbw xmm2, xmm6     ; xmm2 =  [0|B|0|G|0|R|0|A | 0|B|0|G|0|R|0|A] 
+
+  pmullw xmm1, xmm3         ; xmm1  = [B*v|G*v|R*v|A*1 | lo mismo aca ] 
+  ;no me importa la parte alta
+  pmullw xmm2, xmm4         ; xmm2  = [B*(1-v)|G*(1-v)|R*(1-v)|A*1 | lo mismo aca ]
+  ;no me importa la parte alta
+   
+
+  psrlw xmm1, 8            ; divido por 256;
+  psrlw xmm2, 8            ; divido por 256;
+  
+
+  paddw xmm1, xmm2       ; (uint32_t) xmm1 = [B1+B2|G1+G2|R1+R2|A]
+  
+  packuswb xmm1, xmm1      ; xmm1 = [0|0|0|0|0|0|0|0 | B|G|R|A~|B|G|R|A~]
+  
+  movsd [r14 + rbx], xmm1  ; lo guardo de nuevo en memoria
+
+  add rbx, 8
+%endrep
+  add rcx, %1*2
+
+  jmp .loop
+
+%endmacro
+
 section .data
 
 _1: dd 1.0
@@ -12,6 +53,7 @@ _muchos256: dd 256.0, 256.0, 256.0, 256.0
 _muchos257ints: dw 257, 257, 257, 257, 257, 257, 257, 257
 _11111111: dw 1, 1, 1, 1, 1, 1, 1, 1
 _floor: dd 0x7F80
+
 
 
 section .text
@@ -68,41 +110,7 @@ ASM_merge2:
   pxor xmm6, xmm6      ; xmm6 = 0
   ;;;;;;;;
 
-.loop:
-  cmp rcx, rax   ; si iterador = h*w, listo, terminamos
-  je .fin
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;; tengo que hacer xmm1*xmm3 + xmm2*xmm4 ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  
-  movq xmm1, [r14 + rbx] ; xmm1 = [x|x|x|x|x|x|x|x | B|G|R|A|B|G|R|A]
-  movq xmm2, [r15 + rbx] ; xmm2 = [x|x|x|x|x|x|x|x | B|G|R|A|B|G|R|A]
-
-  punpcklbw xmm1, xmm6     ; xmm1 =  [0|B|0|G|0|R|0|A | 0|B|0|G|0|R|0|A] 
-  punpcklbw xmm2, xmm6     ; xmm2 =  [0|B|0|G|0|R|0|A | 0|B|0|G|0|R|0|A] 
-
-  pmullw xmm1, xmm3         ; xmm1  = [B*v|G*v|R*v|A*1 | lo mismo aca ] 
-  ;no me importa la parte alta
-  pmullw xmm2, xmm4         ; xmm2  = [B*(1-v)|G*(1-v)|R*(1-v)|A*1 | lo mismo aca ]
-  ;no me importa la parte alta
-   
-
-  psrlw xmm1, 8            ; divido por 256;
-  psrlw xmm2, 8            ; divido por 256;
-  
-
-  paddw xmm1, xmm2       ; (uint32_t) xmm1 = [B1+B2|G1+G2|R1+R2|A]
-  
-  packuswb xmm1, xmm1      ; xmm1 = [0|0|0|0|0|0|0|0 | B|G|R|A~|B|G|R|A~]
-  
-  movsd [r14 + rbx], xmm1  ; lo guardo de nuevo en memoria
-
-  add rbx, 8
-  inc rcx
-  inc rcx
-
-  jmp .loop
+  mainloop 4096
 
 .fin:
   pop r15

@@ -44,8 +44,23 @@ ASM_merge2:
   pxor xmm5, xmm5
   movss xmm5, [_1]
 
-  movups xmm1, [_muchos256]
+  movups xmm10, [_muchos256]
   
+  
+
+  movdqu xmm14, [_muchos257ints]  ; (int16) xmm4 =  257 | 257 | 257 | 257 | 257 | 257 | 257 | 257
+
+  pxor xmm6, xmm6      ; xmm6 = 0
+  ;;;;;;;;
+
+.loop:
+  cmp rcx, rax   ; si iterador = h*w, listo, terminamos
+  je .fin
+
+
+
+
+
   pxor xmm3, xmm3      ; xmm3 =  0 | 0 | 0 | 0
   addss xmm3, xmm0     ; xmm3 =  0 | 0 | 0 | value
   pslldq xmm3, 4       ; xmm3 =  0 | 0 | value | 0
@@ -54,23 +69,17 @@ ASM_merge2:
   addss xmm3, xmm0     ; xmm3 =  0 | value | value | value
   pslldq xmm3, 4       ; xmm3 =  value | value | value | 0
   addss xmm3, xmm5     ; xmm3 =  value | value | value | 1.0
-  mulps xmm3, xmm1     ; xmm3 = 256*value | 256*value | 256*value | 256.0
+  mulps xmm3, xmm10     ; xmm3 = 256*value | 256*value | 256*value | 256.0
   
   cvtps2dq xmm3, xmm3  ; (int32) xmm3 = 256*value | 256*value | 256*value | 256
   packuswb xmm3, xmm3  ; (int16) xmm3 = 256*value | 256*value | 256*value | 256 | 256*value | 256*value | 256*value | 256
   ; la instruccion de arriba es exactamente lo que quiero
 
-  
 
-  movdqu xmm4, [_muchos257ints]  ; (int16) xmm4 =  257 | 257 | 257 | 257 | 257 | 257 | 257 | 257
+  
+  movaps xmm4, xmm14
   psubw xmm4, xmm3
 
-  pxor xmm6, xmm6      ; xmm6 = 0
-  ;;;;;;;;
-
-.loop:
-  cmp rcx, rax   ; si iterador = h*w, listo, terminamos
-  je .fin
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;; tengo que hacer xmm1*xmm3 + xmm2*xmm4 ;;;

@@ -72,8 +72,8 @@ ASM_blur1:
   xor r8, r8   ; columnas recorridas
 
 .loop:
-  movdqa xmm1, [r13 + rdi*SIZE_PIXEL] ; en req a memoria recorro con offset
-  movdqa [r14 + r8*SIZE_PIXEL], xmm1 ; en write a temp row recorro con columnas
+  movdqu xmm1, [r13 + rdi*SIZE_PIXEL] ; en req a memoria recorro con offset
+  movdqu [r14 + r8*SIZE_PIXEL], xmm1 ; en write a temp row recorro con columnas
   add r8, 4    ; copio de a 4 pixeles
   add rdi, 4   ; recorri 4 pixeles
   cmp r8, rbx  ; r8 = w?
@@ -106,7 +106,7 @@ ASM_blur1:
   pslldq xmm1, 4
   psrldq xmm1, 4
 
-  movdqa xmm2, xmm1    ; xmm2 = xmm1
+  movdqu xmm2, xmm1    ; xmm2 = xmm1
   punpcklbw xmm1, xmm6 ; xmm1 = [0|B2|0|G2|0|R2|0|A2 0|B1|0|G1|0|R1|0|A1]
 
   punpckhbw xmm2, xmm6 ; xmm2 = [0|0|0|0|0|0|0|0 0|B3|0|G3|0|R3|0|A3]
@@ -123,7 +123,7 @@ ASM_blur1:
   pslldq xmm2, 4
   psrldq xmm2, 4
 
-  movdqa xmm3, xmm2    ; xmm3 = xmm2
+  movdqu xmm3, xmm2    ; xmm3 = xmm2
   punpcklbw xmm2, xmm6 ; xmm2 = [0|B2|0|G2|0|R2|0|A2 0|B1|0|G1|0|R1|0|A1]
 
   punpckhbw xmm3, xmm6 ; xmm3 = [0|0|0|0|0|0|0|0 0|B3|0|G3|0|R3|0|A3]
@@ -136,7 +136,7 @@ ASM_blur1:
   movdqu xmm3, [r13 + r9*SIZE_PIXEL - SIZE_PIXEL]
   psrldq xmm3, 4
 
-  movdqa xmm4, xmm3
+  movdqu xmm4, xmm3
   punpcklbw xmm3, xmm6 ; [B|A]
   punpckhbw xmm4, xmm6 ; [0|C]
 
@@ -145,7 +145,7 @@ ASM_blur1:
   ; sumo todos los resultados (res: xmm1)
   paddw xmm1, xmm2     ; xmm1 = [2B|2G|2R|2A 4B|4G|4R|4A]
   paddw xmm1, xmm3     ; xmm1 = [3B|3G|3R|3A 6B|6G|6R|6A]
-  movdqa xmm2, xmm1    ; xmm2 = [3B|3G|3R|3A 6B|6G|6R|6A]
+  movdqu xmm2, xmm1    ; xmm2 = [3B|3G|3R|3A 6B|6G|6R|6A]
   psrldq xmm2, 8       ; xmm2 = [0|0|0|0     3B|3G|3R|3A]
   paddw xmm1, xmm2     ; xmm1 = [3B|3G|3R|3A 9B|9G|9R|9A]
 

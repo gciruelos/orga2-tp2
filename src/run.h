@@ -11,6 +11,8 @@
 #include "bmp/bmp.h"
 #include "filters/filters.h"
 
+int run_sobel(int c, char* src, char* dst);
+
 int run_blur(int c, char* src, char* dst);
 
 int run_merge(int c, char* src1, char* src2, char* dst, float value);

@@ -5,6 +5,12 @@
 ;                                                                           ;
 ; ************************************************************************* ;
 
+section .data
+align 16
+_9: dd 9.0, 9.0, 9.0, 9.0
+_floor: dd 0x7F80
+
+section .text
 extern malloc
 extern free
 
@@ -66,9 +72,8 @@ ASM_blur2:
     mov r10, r11
     mov r11, rax      ; swap(m_row_0, m_row_1)
 
-    mov rax, rdi
-    ; dec rax Martin: Lo saque para que no promedie dos veces la misma fila!
-    mul r12           ; rax = (rdi - 1)*r12*4 <- proxima fila, en la posición 0
+    mov rax, rdi      ; Calculo el indice de la fila actual
+    mul r12           ; rax = rdi*r12*4 <- fila actual, en la posición 0
     shl rax, 2        ; Calculo el offset de movimiento en rax
     add rax, r14      ; Me corro a la proxima fila en rax
 
@@ -84,15 +89,14 @@ ASM_blur2:
       jmp .copyRow
 
   .copyRowEnd:
-    ; Martin: Fix asqueroso, para no tener que cambiar todos los contadores y redireccionamientos.
-    ; Volvemos a calcular el índice
-    mov rax, rdi
+
+    mov rax, rdi      ; Calculo el índice de la próxima fila
     dec rax
     mul r12           ; rax = (rdi - 1)*r12*4 <- proxima fila, en la posición 0
     shl rax, 2        ; Calculo el offset de movimiento en rax
     add rax, r14      ; Me corro a la proxima fila en rax
 
-    mov rsi, 0x1 ; rsi = columns
+    mov rsi, 0x1      ; rsi = columns
     .loopColumns:
       cmp r8, rsi
       jne .loopColumnsSkip
@@ -140,16 +144,13 @@ ASM_blur2:
       ; Quiero sumar las columnas:
 
       paddw xmm1, xmm4
-      paddw xmm1, xmm7
-      ; xmm1 = [P14 + P24 + P34 | P13 + P23 + P33] <- columna 4 y 3
+      paddw xmm1, xmm7 ; xmm1 = [P14 + P24 + P34 | P13 + P23 + P33] <- columna 4 y 3
 
       paddw xmm2, xmm5
-      paddw xmm2, xmm8
-      ; xmm2 = [P12 + P22 + P32 | P11 + P21 + P31] <- columna 2 y 1
+      paddw xmm2, xmm8 ; xmm2 = [P12 + P22 + P32 | P11 + P21 + P31] <- columna 2 y 1
 
       paddw xmm3, xmm6
-      paddw xmm3, xmm9
-      ; xmm3 = [P16 + P26 + P36 | P15 + P25 + P35] <- columnas 6 y 5
+      paddw xmm3, xmm9 ; xmm3 = [P16 + P26 + P36 | P15 + P25 + P35] <- columnas 6 y 5
 
       movsd xmm5, xmm3
       psrldq xmm3, 8
@@ -160,8 +161,7 @@ ASM_blur2:
       movsd xmm4, xmm1
 
       movsd xmm1, xmm2
-      psrldq xmm2, 8
-      ; En cada xmmY tengo xmmY = [0 | CY] como enteros en words
+      psrldq xmm2, 8 ; En cada xmmY tengo xmmY = [0 | CY] como enteros en words
 
       paddw xmm1, xmm2
       paddw xmm1, xmm3
@@ -173,33 +173,27 @@ ASM_blur2:
       paddw xmm3, xmm5
 
       paddw xmm4, xmm5
-      paddw xmm4, xmm6
-      ; En cada xmmY tengo xmmY = [0 | Pixel Nuevo Y] como enteros en words
-      ; Falta dividir
+      paddw xmm4, xmm6 ; En cada xmmY tengo xmmY = [0 | Pixel Nuevo Y] como enteros en words
 
       punpcklwd xmm1, xmm15
       punpcklwd xmm2, xmm15
       punpcklwd xmm3, xmm15
-      punpcklwd xmm4, xmm15
-      ; Cada xmmY pasa a tener BGRA como enteros de 32 bits
+      punpcklwd xmm4, xmm15 ; Cada xmmY pasa a tener BGRA como enteros de 32 bits
 
       cvtdq2ps xmm1, xmm1
       cvtdq2ps xmm2, xmm2
       cvtdq2ps xmm3, xmm3
-      cvtdq2ps xmm4, xmm4
-      ; Convierto a float todos los BGRA
+      cvtdq2ps xmm4, xmm4 ; Convierto a float todos los BGRA
 
       divps xmm1, xmm14
       divps xmm2, xmm14
       divps xmm3, xmm14
-      divps xmm4, xmm14
-      ; Los dividi a todos por 9
+      divps xmm4, xmm14 ; Los dividi a todos por 9
 
       cvtps2dq xmm1, xmm1
       cvtps2dq xmm2, xmm2
       cvtps2dq xmm3, xmm3
-      cvtps2dq xmm4, xmm4
-      ; Convierto los floats a enteros
+      cvtps2dq xmm4, xmm4 ; Convierto los floats a enteros
 
       packusdw xmm1, xmm15
       packuswb xmm1, xmm15
@@ -211,17 +205,15 @@ ASM_blur2:
       packuswb xmm3, xmm15
 
       packusdw xmm4, xmm15
-      packuswb xmm4, xmm15
-      ; Pasamos todos a ser 4 bytes de vuelta con saturación.
+      packuswb xmm4, xmm15 ; Pasamos todos a ser 4 bytes de vuelta con saturación.
 
       movd [rax + r12*4 + 4], xmm1
       movd [rax + r12*4 + 4*2], xmm2
       movd [rax + r12*4 + 4*3], xmm3
-      movd [rax + r12*4 + 4*4], xmm4
-      ; Guardamos todo en memoria
+      movd [rax + r12*4 + 4*4], xmm4 ; Guardamos todo en memoria
 
-      add rsi, 0x4  ; Me adelanto 4 elementos
-      add rax, 4*4
+      add rsi, 0x4
+      add rax, 4*4 ; Me adelanto 4 elementos
       jmp .loopColumns
   .endColumns:
     inc rdi ; Incrementamos de fila
@@ -244,7 +236,3 @@ ASM_blur2:
   pop rbx
   pop rbp
   ret
-
-align 16
-_9: dd 9.0, 9.0, 9.0, 9.0
-_floor: dd 0x7F80

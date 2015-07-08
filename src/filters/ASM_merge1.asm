@@ -61,8 +61,8 @@ ASM_merge1:
   cmp rcx, rax   ; si iterador = h*w, listo, terminamos
   je .fin
 
-  movdqu xmm1, [r14 + rbx] ; xmm1 = [x|x|x|x|x|x|x|x | x|x|x|x|B|G|R|A]
-  movdqu xmm2, [r15 + rbx] ; xmm2 = [x|x|x|x|x|x|x|x | x|x|x|x|B|G|R|A]
+  movd xmm1, [r14 + rbx] ; xmm1 = [x|x|x|x|x|x|x|x | x|x|x|x|B|G|R|A]
+  movd xmm2, [r15 + rbx] ; xmm2 = [x|x|x|x|x|x|x|x | x|x|x|x|B|G|R|A]
 
   ; armar espacio en el registro para convertir de uint8_t a float
   punpcklbw xmm1, xmm6     ; xmm1 =  [x|x|x|x|x|x|x|x | 0|B|0|G|0|R|0|A] 
