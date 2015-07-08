@@ -173,7 +173,7 @@ Cabe destacar que cada una de las columnas de estos registros se corresponde con
 \subsection{Comentarios}
 Al comparar utilizando la imagen de diferencias la imagen generada por el blur de la cátedra y la de ASM1, notamos lo siguiente:
 
-\begin{figure}[!htb]
+\begin{figure}[H]
 \minipage{0.2\textwidth}
   \includegraphics[width=\linewidth]{images/lenablurc.png}
   \caption{Blur C}
@@ -215,7 +215,7 @@ Sin embargo, nuestra primera versión de la implementación levantaba así los p
 
 Además, la performance de nuestros algoritmos de Blur no se verá afectada por ninguna otra característica de la imagen que el tamaño: ninguno de los algoritmos actúa según condiciones sobre el contenido de las imágenes. Las tres implementaciones simplemente procesan datos, sin comparar con ninguna otra cosa que no sea el número de columna o de fila. En concreto, esperamos que nuestras implementaciones en Assembler sean ambas más rápidas que la de C, y que entre ellas ASM2 sea más rápida que ASM1 (fundamentalmente por el procesamiento en paralelo de a muchos píxeles).
 
-\begin{figure}[!b]
+\begin{figure}[H]
 	\centering
   \includegraphics[width=10cm]{images/blur-imagenes-chicas.png}
   \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadrádas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas. El número del eje horizontal quiere decir el ancho (igual al alto) de la imágen, es decir que la cantidad de píxeles es ese número al cuadrado}
@@ -223,7 +223,7 @@ Además, la performance de nuestros algoritmos de Blur no se verá afectada por 
 
 Observemos que, efectivamente, se cumple lo que esperábamos: los ciclos de reloj crecen de forma cuadrática en relación al tamaño de la imagen. Además, notese que tienen relativamente poco desvío una implementación con respecto a la otra, suponemos que esto quiere decir que tienen comportamientos regulares con respecto al pipeline y sus accesos a memoria (de otra forma, tendríamos más picos en el gráfico). Nos sorprendió mucho que la implementación de ASM1 se asimile tanto a la de ASM2, ya que esperábamos una mayor amplitud entre las curvas; por esto, corrimos un nuevo experimento tomando tamaños de imagen mucho más grandes:
 
-\begin{figure}[!hbt] 
+\begin{figure}[H] 
 	\centering
   \includegraphics[width=10cm]{images/blur-imagenes-grandes.png}
   \caption{Performance de C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos un conjunto de imágenes cuadradas con tamaños múltiplos de 4 y píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas. Elegimos estas dimensiones porque eran suficientemente grandes como para que se note la diferencia, pero suficientemente chichas como para que el
@@ -232,7 +232,7 @@ Observemos que, efectivamente, se cumple lo que esperábamos: los ciclos de relo
 
 Esta vez, encontramos una brecha mucho más marcada entre las distintas implementaciones, lo que nos asegura que efectivamente el crecimiento de las constantes escondidas en la complejidad temporal está haciendo una diferencia importante a medida que aumenta la escala. Para finalizar, tomamos un ejemplo más de cerca para observar más precisamente las disparidades:
 
-\begin{figure}[!hbt] 
+\begin{figure}[H] 
 	\centering
   \includegraphics[width=17cm]{images/blur-all.png}
   \caption{Performance de C compilado con -o0, C compilado con -o3 y -ffastmath, ASM1 y ASM2. Utilizamos una imagen roja de $400 \times 400$, con píxeles tomados de una distribución uniforme, y medimos los resultados de 100 corridas, tomando como estadístico el mínimo de la cantidad de ciclos de reloj en todas las corridas.}
@@ -240,3 +240,4 @@ Esta vez, encontramos una brecha mucho más marcada entre las distintas implemen
 
 Como habíamos notado antes, el hecho de estar utilizando imágenes pequeñas no ayuda a que se note la diferencia entre ASM1 y ASM2. Pensamos que uno de los posibles motivos para esto es que los algoritmos que escribimos no están optimizados en tanto a sus accesos a memoria: ambos hacen accesos desalineados. Una posible mejora para el algoritmo de ASM2 sería utilizar los registros AVX para poder obtener más píxeles de memoria, disminuyendo la cantidad de accesos, y permitiéndonos un trabajo mucho más rápido, procesando de a 8 píxeles en simultaneo. Otra posible mejora sería pedir que las direcciones de memoria con las que trabajamos estén alineadas a 16 bits. Esto nos permitiría realizar siempre accesos alineados, lo que debería mejorar la performance de nuestros algoritmos.
 
+A modo de cuantificar el impacto de la caché en la performance de nuestros algoritmos, decidimos correr un experimento cuyo impacto cambie ampliamente según la posibilidad de guardar datos en la cache o no. Según observamos, la máquina de pruebas tiene una cache con lineas de 64 bytes, con 64 sets y un tamaño de 32K, por lo que si guardamos una imagen de 25x32 va a poder ocupar 50 lineas contiguas de la caché y, más aun, ocupará de a 2 por fila, a excepción de la primera fila que ocupará 6. Supongamos, además, que tomamos una imagen que, además, fuerce accesos 
