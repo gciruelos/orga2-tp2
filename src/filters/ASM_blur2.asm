@@ -38,8 +38,8 @@ ASM_blur2:
     cmp r9, r12
     jge .endCopyFirstRow
 
-    movdqu xmm0, [r14 + 4*r9]
-    movdqu [r11 + 4*r9], xmm0
+    movdqa xmm0, [r14 + 4*r9]
+    movdqa [r11 + 4*r9], xmm0
 
     add r9, 0x4
     jmp .copyFirstRow
@@ -55,7 +55,7 @@ ASM_blur2:
 
   ldmxcsr [_floor]    ; Ponemos a las operaciones de SSE para hacer floor
   pxor xmm15, xmm15   ; Preparamos el registro de 0
-  movdqu xmm14, [_9]  ; Preparamos el registro para dividir
+  movdqa xmm14, [_9]  ; Preparamos el registro para dividir
 
   mov rdi, 0x1        ; rdi = rows
   .loopRows:
@@ -77,8 +77,8 @@ ASM_blur2:
       cmp rdx, r12
       jge .copyRowEnd
 
-      movdqu xmm0, [rax + rdx*4]
-      movdqu [r11 + rdx*4], xmm0
+      movdqa xmm0, [rax + rdx*4]
+      movdqa [r11 + rdx*4], xmm0
 
       add rdx, 0x4
       jmp .copyRow

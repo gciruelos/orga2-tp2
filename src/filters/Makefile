@@ -25,34 +25,23 @@ o3: all
 o3fast: CFLAGS += -O3 -ffast-math
 o3fast: all
 
-o0shift:
-	make shifts
-	make o0
-	make shuffles
+o0shift: shifts o0 shuffles
 
-o3shift:
-	make shifts
-	make o3
-	make shuffles
+o3shift: shifts o3 shuffles
 
-o3fastshift:
-	make shifts
-	make o3fast
-	make shuffles
+o3fastshift: shifts o3fast shuffles
 
-o0shuffles:
-	make shuffles
-	make o0
+o0shuffles: shuffles o0
 
-o3shuffles:
-	make shuffles
-	make o3
+o3shuffles: shuffles o3
 
-o3fastshuffles:
-	make shuffles
-	make o3fast
+o3fastshuffles: shuffles o3fast
 
-shuffles: cp ASM_hsl2.asm ASM_hsl2_shuffles.asm
-shifts: cp ASM_hsl2.asm ASM_hsl2_shifts.asm
+shuffles:
+	cp ASM_hsl2_shuffles.asm ASM_hsl2.asm
+    
+shifts:
+	cp ASM_hsl2_shifts.asm ASM_hsl2.asm
 
-clean: rm  -f *.o
+clean:
+	rm  -f *.o
