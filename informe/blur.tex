@@ -247,7 +247,8 @@ Como habíamos notado antes, el hecho de estar utilizando imágenes pequeñas no
 \subsubsection*{Experimento}
 Un experimento que nos fue propuesto fue el de analizar no solo el algoritmo del filtro, si no tambien ver cuando toma cargar la imagen y guardarla, para tener una relación del costo de cargar la imagen en comparación con el filtro.
 
-En este experimento jugó especial importancia el estadístico que elegimos. Como leer/escribir archivos usualmente requiere accesos a disco, fue muy importante no elegir como estadístico el promedio de las mediciones y elegir el mínimo de ellas. Esto se nota sobre todo en la parte de escritura, dado que en general nuestro programa ``pierde el control'' de lo que sucede, y las cosas quedan en manos del sistema operativo y el filesystem, entonces las cosas tardan mucho.
+En este experimento jugó especial importancia el estadístico que elegimos. Como leer/escribir archivos usualmente requiere accesos a disco, fue muy importante no elegir como estadístico el promedio de las mediciones y elegir el mínimo de ellas. Esto se nota sobre todo en la parte de escritura, dado que en general nuestro programa ``pierde el control'' de lo que sucede, y las cosas quedan en manos del sistema operativo y el filesystem, entonces hay muchos ciclos que el
+microprocesador pasa ocioso esperando que termine la lectura/escritura de datos.
 
 \begin{figure}[H] 
 	\centering
@@ -255,7 +256,7 @@ En este experimento jugó especial importancia el estadístico que elegimos. Com
   \caption{Análisis comparativo del porcentaje de tiempo dedicado a cada instancia. Tamaño de la muestra: 200 imágenes de $16\times 10^4$ píxeles. Todo el proceso toma al rededor de $14 \times 10^6$ ciclos de reloj como mínimo.}
 \end{figure}
 
-Los resultados fueron similares a los que esperabamos, se nota que el filtro toma menos tiempo que las otras 2 partes, sin embargo es en la que se debería hacer más foco a la hora de optimizar, dado que las otras dos ya son bastante optimas (no se puede hacer nada mucho mas rápido que lo que ya se hace, realmente).
+Los resultados fueron similares a los que esperabamos, se nota que el filtro toma menos tiempo que las otras 2 partes, sin embargo es en la que se debería hacer más foco a la hora de optimizar, dado que las otras dos ya son bastante optimas: no se puede hacer nada mucho mas rápido que lo que ya se hace, realmente.
 
 Como dijimos antes, si hubieramos tomado el promedio de las mediciones, en lugar de el mínimo, el filtro hubiera ocupado solamente el 1\% de ese gráfico, mientras que la lectura de la imagen se hubiera llevado el 3\% y la escritura el 96\%.
 
@@ -264,7 +265,7 @@ Como dijimos antes, si hubieramos tomado el promedio de las mediciones, en lugar
 \subsubsection*{Experimento}
 Otro experimento que realizamos es ver como funciona nuestro algoritmo con imagenes que son muy distintas. Para eso, elegimos 3 imagenes que nos parecieron representantivas para lo que queremos mostrar: una totalmente blanca, una totalmente negra y Lena.
 
-La justificación de la elección de las imagenes es que todas representan un extremo distinto en la distribución de los canales de color, una lo máximo posible, otra lo mínimo posible, y otra una distribución más al ``azar'' de los canales, aunque con patrones (como son las imágenes en general).
+La justificación de la elección de las imagenes es que todas representan un extremo distinto en la distribución de los canales de color, una lo máximo posible, otra lo mínimo posible, y otra una distribución más al ``azar'' de los canales, aunque con patrones (como son las imágenes con las que uno se encuentra en la vida real).
 
 \begin{figure}[H] 
 	\centering
