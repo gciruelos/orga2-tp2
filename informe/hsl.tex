@@ -109,6 +109,7 @@ Este es definitivamente el factor más limitante de nuestra implementación y es
 
 
 \pagebreak
+
 \subsection{Experimentación}
 
 Al igual que en los anteriores filtros, esperábamos que el rendimiento de nuestra implementación en assembler sea más rápida que la de C. Sin embargo los resultados nos dijeron lo contrario.
@@ -240,6 +241,23 @@ Sin embargo, en este experimento es interesante ponderar el caso promedio (indic
 Esto provocaría que cuando nuestro programa quiera volver a obtener información que tenia previamente cacheada, deba volver a acceder a memoria principal, pagando esa penalidad. Por lo tanto, a mas grande sea la imagen y a más carga tenga el procesador (específicamente su cache), más alta va a ser la penalidad por acceder desalineadamente a memoria.
 
 
+\subsubsection*{Experimento}
+
+Un experimento que surgió de la primera corrección del tp, fue una variante del código que nos propuso David. Nosotros teníamos una cierta variable local que guardabamos en una posición de memoria que había sido previamente obtenida con \texttt{malloc}. David nos dijo que esto no era lo óptimo y que lo mejor era guardar la variable en la pila (como por ejemplo bien hicimos en el mismo código con otro valor). Por esta razón nos propusimos comparar las dos versiones.
+
+Lo que va a suceder seguramente es que se note la diferencia en imagenes pequeñas, dado que en la versión que se hace malloc se paga la penalidad de 2 llamadas a función (malloc y free) y el posible acceso a memoria no cacheada (lo que devuelve malloc); mientras que en imágenes más grandes estos costos se disipan, dado que son penalidades que se pagan solamente una vez en toda la corrida de un programa.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{images/hsl-malloc.png}
+  \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 16$ y $512 \times 512$ píxeles respectivamente. Se indica el mínimo con la barra y el promedio con una linea gris. El absoluto (1.0) es siempre la versión que usa malloc.}
+\end{figure}
+
+
+Esto es efecivamente lo que sucedió. En lás imágenes de $16 \times 16$ la diferencia es de un 10\% del tiempo, y se debe principalmente a lo que dijimos antes.
+
+En lás imágenes de mayor tamaño la diferencia es inexistente, dado que el costo que se paga por las llamadas a malloc y free (y el acceso a memoria posiblemente no cacheada) queda totalmente aplastado por el costo de todas las operaciones del filtro sobre tantos píxeles.
+
 
 \subsubsection*{Experimento}
 El último experimento que hicimos, se nos ocurrió al ver los resultados originales de las comparaciones de las performances, nos propusimos cambiar la implementación de assembler. Nuestra primera versión utilizaba muchos shifts, y dado que en una clase aprendimos que el desempeño de los shifts era peor que el desempeño de los shuffles, decidimos probarlo. El resultado, como se ve en la primera imagen, no fue del todo el esperado. Sí, hubo una mejora de performance, pero no fue significativa, ni nos permitió acercarnos a la implementación en C, nuestro principal objetivo.
@@ -255,6 +273,7 @@ Como se ve en esta imagen claramente, este cambio solo nos permitió un magro 10
 
 Algo importante que notar es que esto no significa que usar shuffles es 10\% más rápido que usar shifts, si no que es bastante más rápido. Esto se debe a que nosotros hacemos el análisis del programa completo, si se analizan por separado las partes en las que esta decisión incumbe, se llega a speedups de hasta el 40\%, dependiendo de la computadora.
 \\
+
 
 
 

@@ -200,6 +200,8 @@ Aunque las imágenes parecían exactamente iguales, habían diferencias en algun
 
 Para resolver esto, existe un flag de SSE llamado $MXCSR$. Para mas información, ver la sección 10.2.3.1 del Volumen 1 de la guía de arquitectura Intel. Cada bit de este flag codifica algún comportamiento de las operaciones SSE. El valor por defecto de este flag es $0x1F80$. Para que redondee hacia abajo, utilizando la codificación de los bits del flag, había que poner el bit 12 y 13 en 1. Por lo tanto, simplemente setteamos el flag con la instrucción $ldmxcsr$ en $0x7F80$ y el algoritmo comenzó a andar sin problemas. Tuvimos esta misma problemática en todos los otros filtros más tarde.
 
+
+\pagebreak
 \subsection{Experimentación}
 
 Es fácil darse cuenta, ya sea mirando el código o comprendiendo qué es lo que debe hacer el algoritmo de Blur, de que todas las implementaciones del mismo van tener una complejidad temporal de $O(w*h)$, indicando que la cantidad de operaciones que realizará el algoritmo serán de orden cuadrático si tomamos $w = h = n$. Es decir, los gráficos que generemos deberán tener la forma de una parábola a medida que $n$ se vuelva más grande. Lo interesante, y he aquí donde radican las ventajas de hacer el código en Assembler, es que sabemos que las tres implementaciones diferirán en un múltiplo constante de las otras (por la definición de $O$). Intuitivamente, el código de ASM1 debería ir aproximadamente 3 veces más rápido por píxel que el de C, ya que procesa cada canal en paralelo con SIMD, y el código de ASM2 debería ser unas 4 veces más rápido que el de ASM1, ya que no sólo procesa los canales en paralelo, sino que además procesa los píxeles en grupos de a cuatro.
@@ -262,7 +264,7 @@ Como dijimos antes, si hubieramos tomado el promedio de las mediciones, en lugar
 \subsubsection*{Experimento}
 Otro experimento que realizamos es ver como funciona nuestro algoritmo con imagenes que son muy distintas. Para eso, elegimos 3 imagenes que nos parecieron representantivas para lo que queremos mostrar: una totalmente blanca, una totalmente negra y Lena.
 
-La justificación de la elección de las imagenes es que todas representan un extremo distinto en la distribución de los canales de color, una lo máximo posible, otra lo mínimo posible, y otra una distribución más al ``azar'' de los canales, aunque con patrones bien marcados.
+La justificación de la elección de las imagenes es que todas representan un extremo distinto en la distribución de los canales de color, una lo máximo posible, otra lo mínimo posible, y otra una distribución más al ``azar'' de los canales, aunque con patrones (como son las imágenes en general).
 
 \begin{figure}[H] 
 	\centering
@@ -272,7 +274,7 @@ La justificación de la elección de las imagenes es que todas representan un ex
 
 Como era de esperarse, no hay variaciones entre los tiempos de las corridas de nuestro algoritmo sobre estas imagenes. Esto se debe a que nuestro algoritmo siempre realiza la misma operatoria, sin importar los canales de la imagen.
 
-
+Y no solo esto, si no que el tiempo que toman las instrucciones de assembler utilizadas no dependen (demasiado) de la entrada. Por ejemplo, en la imagen blanca, la suma de los píxeles siempre da 2295.0, y en la imagen negra siempre da 0.0, y según estos resultados, dividir esos dos números por 9.0 tardaría un tiempo similar.
 
 \subsubsection*{Experimento}
 
