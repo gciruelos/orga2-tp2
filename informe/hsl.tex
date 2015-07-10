@@ -124,21 +124,21 @@ Los resultados fueron devastadores, dado que no los esperábamos. Al igual que e
 
 Por esta razón nos propusimos a hacer un amplio análisis de la situación, para poder descubrir la razón del bajo rendimiento.
 
-La principal limitación de nuestra implementación de assembler son, claramente, los accesos a memoria. En cada rutina (de ambas implementaciones) debemos cargar muchas constantes que usaremos a lo largo de las distintas cuentas que debemos hacer.
-Esto es muy caro para nosotros, dado que los accesos a memoria son de lo mas limitante en lo que concierne a la performance. 
-A esto atribuimos principalmente nuestro pobre desempeño frente a la implementación de C. Veremos más adelante otras circunstancias que apoyan esta teoría.
+Los dos posibles culpables del bajo rendimiento son las operatorias lógico-aritmeticas y los accesos a memoria.  Como vamos a ver más adelante en los gráficos de torta, el código de Suma es ya de por si más lento de lo que debería ser, y los códigos de las conversiones aún más, por eso lo más probable es que salgamos perdiendo frente a C por esta razón.
+
+La otra limitación son los accesos a memoria: tenemis muchas variables, máscaras, y constantes que debemos acceder todo el tiempo, y muchas veces no podemos guardarlas en registros dado que muchas veces no nos alcanzan.
 
 Habiendo dicho esto, también es cierto que una vez que pedimos un dato de memoria, este debería guardarse en la cache, siendo su acceso mucho más rápido. Pero la cache sigue siendo aún mas lenta que los registros del procesador, por lo que acceder a memoria (por mas que sea cache) sigue siendo un factor limitante.
 
-Por otro lado, nuestros algoritmos no dependen fuertemente en saltos condicionales, usan los necesarios, por lo tanto no creemos que este sea un factor limitante del rendimiento.
+Por otro lado, nuestros algoritmos no dependen fuertemente en saltos condicionales, usan los necesarios, por lo tanto no creemos que este sea un factor limitante del rendimiento. Sin embargo, los saltos y las llamadas a funciones, aunque no son determinantes, impactan un poco en el rendimiento. Esto será analizado en uno de los experimentos de más adelante.
 
-La siguiente limitación de nuestra implementación es la operatoria de las conversiones de RGB a HSL y viceversa. Esto se debe a que las operaciones que se deben hacer son largas y costosas, por mas que esten lo mejor optimizadas posibles.
+
+La otra limitación de nuestra implementación era la operatoria de las conversiones de RGB a HSL y viceversa. Esto se debe a que las operaciones que se deben hacer son largas y costosas, por mas que esten lo mejor optimizadas posibles.
 
 A esto se le suma la dificultad de operar de a muchos píxeles juntos, dado que solo se puede en pequeñas partes.
 Por ejemplo, en hslTOrgb se podría calcular de forma paralela c, x, m para 4 pixeles así como la operatoria de los shuffles.
 Sin embargo, la complejidad del código crece enormemente, sumado a que la operación de rgbTOhsl y la de Suma no son así de simples de paralelizar.
-Por estas razones, optamos por no probar esta variante del código, pero es una opción a tener en cuenta.
-\\
+Por estas razones, optamos por no probar esta variante del código, pero es una opción a tener en cuenta. \\
 
 Comentando partes de códigos, pudimos obtener una partición tentativa de cuanto tarda cada operación de la segunda implementación de hsl, algo que nos parece vital a la hora de analizar la performance. Los resultados fueron los siguientes:
 
@@ -146,15 +146,16 @@ Comentando partes de códigos, pudimos obtener una partición tentativa de cuant
 \begin{figure}[H] 
 	\centering
   \includegraphics[scale=0.7]{images/hsl-div.png}
-  \caption{Análisis comparativo del porcentaje de tiempo dedicado a cada instancia. Tamaño de la muestra: 100 imágenes de $16\times 10^4$ píxeles}
+  \caption{Análisis comparativo del porcentaje de tiempo dedicado a cada instancia. Tamaño de la muestra: 100 imágenes de $16\times 10^4$ píxeles. Los códigos en C fueron compilados con -O3.}
 \end{figure}
 
 Este gráfico debe interpretarse de la siguiente manera: el tiempo que se dedica en cada loop a hacer cada una de esas operaciones, es aproximadamente el indicado en el porcentaje.
 
-A priori parecería que el proceso de Suma es más lento de lo que debería ser, lo cual es posible, dado que se cargan muchas veces las mismas cosas de memoria. Esto es inevitable en la primera implementación de hsl (dado que las llamadas a las funciones de C nos rompen todos los registros y no podemos guardar nada), mientras que podría ser evitable en la segunda implementación.
+Primero analicemos el caso HSL2. A priori parecería que el proceso de Suma es más lento de lo que debería ser, lo cual es posible, dado que se cargan muchas veces las mismas cosas de memoria. Esto es inevitable en la primera implementación de hsl (dado que las llamadas a las funciones de C nos rompen todos los registros y no podemos guardar nada), mientras que podría ser evitable en la segunda implementación.
 
 Sin embargo, viendo el código de nuestra implementación no parece que se pudiera mejorar demasiado (sin cambiar los algoritmos drásticamente), dado que los principales cambios que podrían realizarse son pasar de shifts a shuffles o extracts/inserts. Pero estas optimizaciones, como vimos anteriormente, no dan un speedup muy grande.
-\\
+
+En el caso de HSL1, se ve que Suma es más lento de lo que debería ser, dado que supera a los tiempos de los códigos de C, y eso que la operatoria de las conversiones es más compleja. \\
 
 Lo último que queda inspeccionar para encontrar una razón por la cual el código de C le gana al nuestro, es mirando el output de assembler de GCC. Para ello, corremos el comando \texttt{gcc -O3 -S -nasm=intel -fverbose-asm C\_hsl.c}.
 
@@ -187,22 +188,33 @@ Estos resultados realmente nos sorprendieron, ya que como se puede ver, el rendi
 Atribuimos los resultados no solo a la mayor cantidad de comparaciones, si no tambien a la gran cantidad de saltos condicionales que intervienen en el código. Debido a esto, probablemente el branch predictor no actue de la mejor manera y no se aproveche todo el potencial del pipelining.
 
 
-
-
 \subsubsection*{Experimento}
-Al ver los resultados, nos propusimos cambiar la implementación de assembler. Nuestra primera versión utilizaba muchos shifts, y dado que en una clase aprendimos que el desempeño de los shifts era peor que el desempeño de los shuffles, decidimos probarlo. El resultado, como se ve en la primera imagen, no fue del todo el esperado. Sí, hubo una mejora de performance, pero no fue significativa, ni nos permitió acercarnos a la implementación en C, nuestro principal objetivo.
+El primer experimento que nos propusimos hacer para este código es el de comparar call vs. jmp vs. macro.
 
+En hsl tenemos 2 subrutinas que convierten entre esquemas de colores (hslTOrgb y hslTOrgb), entonces nos encontramos con el problema de como correr ese código. En la primera variante del código (asm1), como el código de esas rutinas está escrito en C, no nos queda otra que usar calls.
 
-\begin{figure}[!hbt] 
+Sin embargo, en la segunda versión del código, la más interesante para analizar en este experimento, nosotros tenemos que implementar las rutinas. Por lo tanto, podemos aprovecharnos de esto para ``que no nos importe'' la convención C, dado que conocemos al momento de llamar a las rutinas que registros estamos usando y que registros no, utilizar en la rutina solo aquellos que podemos pisar.
+
+De esta manera, podríamos directamente saltar a la rutina de la tarea, ahorrándonos algunos pushs a la pila. Otra forma también sería pegar el código de la rutina en la rutina principal, total no pisa ningún registro importante (esta solución es exactamente la misma que la de los macros, solo que la de los macros se hace en tiempo de compilación).
+
+Otro elemento que entra en juego es el del branch predictor: cuando hay un salto, el flujo de instrucciones posible del programa se divide en 2, y el pipeline del procesador sigue una de las ramas, que potencialmente puede ser la no tomada y entonces el procesador puede haber hecho trabajo en vano y haber perdido ciclos de reloj.
+
+Sin embargo, como el camino que va a tomar en general es el de saltar, dado que las imágenes son grandes, va a no saltar solo una vez (la última), creemos que el efecto de este fenómeno va a ser mínimo.
+
+\begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{images/hsl-shsh.png}
+  \includegraphics[scale=0.7]{images/hsl-jmpcall.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
-Como se ve en esta imagen claramente, este cambio solo nos permitió un magro 10\% de ganancia sobre la implementación de C.
+Como dijimos anteriormente, para estos resultados se deben mas que nada a los overheads que tienen las operaciones de call y jmp más que a un tema de branch prediction.
 
-Algo importante que notar es que esto no significa que usar shuffles es 10\% más rápido que usar shifts, si no que es bastante más rápido. Esto se debe a que nosotros hacemos el análisis del programa completo, si se analizan por separado las partes en las que esta decisión incumbe, se llega a speedups de hasta el 40\%, dependiendo de la computadora.
-\\
+El overhead del call es bastante, debe pushear la dirección de retorno, además de algunas operaciones con la pila que hacemos al entrar a la función. Otra operatoria, no muy costosa, que tienen el call y el jmp, es la cuenta que tienen que hacer para obtener la dirección a la que tienen que saltar (nuevo IP).
+
+Sin embargo, en términos relativos la performance es casi igual (como se ve perfectamente en el gráfico), la diferencia entre usar calls y usar macros es de menos del 10\%.
+
+
+
 
 \subsubsection*{Experimento}
 Otro experimento que se nos ocurrió realizar es la comparación entre los accesos alineados y desalinaedos a memoria. En clase aprendimos que el procesador puede optimizar los accesos alineados a memoria.
@@ -227,29 +239,22 @@ Sin embargo, en este experimento es interesante ponderar el caso promedio (indic
 
 Esto provocaría que cuando nuestro programa quiera volver a obtener información que tenia previamente cacheada, deba volver a acceder a memoria principal, pagando esa penalidad. Por lo tanto, a mas grande sea la imagen y a más carga tenga el procesador (específicamente su cache), más alta va a ser la penalidad por acceder desalineadamente a memoria.
 
+
+
 \subsubsection*{Experimento}
-El último experimento que nos propusimos hacer para este código es el de comparar call vs. jmp vs. macro.
+El último experimento que hicimos, se nos ocurrió al ver los resultados originales de las comparaciones de las performances, nos propusimos cambiar la implementación de assembler. Nuestra primera versión utilizaba muchos shifts, y dado que en una clase aprendimos que el desempeño de los shifts era peor que el desempeño de los shuffles, decidimos probarlo. El resultado, como se ve en la primera imagen, no fue del todo el esperado. Sí, hubo una mejora de performance, pero no fue significativa, ni nos permitió acercarnos a la implementación en C, nuestro principal objetivo.
 
-En hsl tenemos 2 subrutinas que convierten entre esquemas de colores (hslTOrgb y hslTOrgb), entonces nos encontramos con el problema de como correr ese código. En la primera variante del código (asm1), como el código de esas rutinas está escrito en C, no nos queda otra que usar calls.
-
-Sin embargo, en la segunda versión del código, la más interesante para analizar en este experimento, nosotros tenemos que implementar las rutinas. Por lo tanto, podemos aprovecharnos de esto para ``que no nos importe'' la convención C, dado que conocemos al momento de llamar a las rutinas que registros estamos usando y que registros no, utilizar en la rutina solo aquellos que podemos pisar.
-
-De esta manera, podríamos directamente saltar a la rutina de la tarea, ahorrándonos algunos pushs a la pila. Otra forma también sería pegar el código de la rutina en la rutina principal, total no pisa ningún registro importante (esta solución es exactamente la misma que la de los macros, solo que la de los macros se hace en tiempo de compilación).
-
-Otro elemento que entra en juego es el del branch predictor: cuando hay un salto, el flujo de instrucciones posible del programa se divide en 2, y el pipeline del procesador sigue una de las ramas, que potencialmente puede ser la no tomada y entonces el procesador puede haber hecho trabajo en vano y haber perdido ciclos de reloj.
-
-Sin embargo, como el camino que va a tomar en general es el de saltar, dado que las imágenes son grandes, va a no saltar solo una vez (la última), creemos que el efecto de este fenómeno va a ser mínimo.
 
 \begin{figure}[H] 
 	\centering
-  \includegraphics[scale=0.7]{images/hsl-jmpcall.png}
+  \includegraphics[scale=0.7]{images/hsl-shsh.png}
   \caption{Comparación de la cantidad de ciclos de reloj utilizada por dos variantes de hsl2. Tamaño de la muestra: 200 imágenes de $16 \times 10^4$ píxeles. Se indica el mínimo con la barra y el promedio con una linea gris.}
 \end{figure}
 
-Como dijimos anteriormente, para estos resultados se deben mas que nada a los overheads que tienen las operaciones de call y jmp más que a un tema de branch prediction.
+Como se ve en esta imagen claramente, este cambio solo nos permitió un magro 10\% de ganancia sobre la implementación de C.
 
-El overhead del call es bastante, debe pushear la dirección de retorno, además de algunas operaciones con la pila que hacemos al entrar a la función. Otra operatoria, no muy costosa, que tienen el call y el jmp, es la cuenta que tienen que hacer para obtener la dirección a la que tienen que saltar (nuevo IP).
+Algo importante que notar es que esto no significa que usar shuffles es 10\% más rápido que usar shifts, si no que es bastante más rápido. Esto se debe a que nosotros hacemos el análisis del programa completo, si se analizan por separado las partes en las que esta decisión incumbe, se llega a speedups de hasta el 40\%, dependiendo de la computadora.
+\\
 
-Sin embargo, en términos relativos la performance es casi igual (como se ve perfectamente en el gráfico), la diferencia entre usar calls y usar macros es de menos del 10\%.
 
 

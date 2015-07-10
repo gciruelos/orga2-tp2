@@ -66,6 +66,7 @@ ASM_hsl1:
   cmp rcx, r15   ; si iterador = h*w, listo, terminamos
   je .fin
 
+
   lea rdi, [r14 + 4*rcx] ; rdi = r14 + rcx
   mov rsi, rbx         ; rsi = puntero a float
   push rcx
@@ -74,7 +75,6 @@ ASM_hsl1:
   add rsp, 8
   pop rcx
   ; ahora en rbx tengo 4 floats, que representan la transparencia, H, S, L
-
 
   ;;;; xmm4 = [ll | ss | hh | 00]
   movdqu xmm4, [rsp]
@@ -136,7 +136,8 @@ ASM_hsl1:
   movups [rbx], xmm3  ; lo guardo en mi posicion de memoria
   mov rdi, rbx
   lea rsi, [r14 + 4*rcx] 
-  
+
+
   push rcx
   sub rsp, 8
   call hslTOrgb

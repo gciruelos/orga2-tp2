@@ -140,7 +140,7 @@ La razón es claro que radica en lo que vimos anteriormente, es decir, el tamañ
 
 Está clarisimo entonces que es mucho mas probable que el primer código este todo el tiempo entero en el cache, mientras que el otro no. Otro problema que aparece con binarios tan grandes es el de los pagefaults. Como ese binario ocupa muchas páginas, puede suceder que una página no este presente y deba cargarsela del disco (poco probable igualmente, dado que el binario no es tan grande como para no tenerlo todo en memoria principal).
 
-La herramienta \texttt{perf} nos permite obtener los siguientes datos:
+La herramienta \texttt{perf} nos permite obtener los siguientes datos: \\
 
 \begin{tabular}{ | l | c |  }
   \hline
@@ -148,9 +148,11 @@ La herramienta \texttt{perf} nos permite obtener los siguientes datos:
   & cache-misses \\ \hline
   128 & 4,979,147\\ \hline
   4096 & 5,490,835\\ \hline
-\end{tabular}
+\end{tabular}\\
 
 Es decir, en la segunda versión tiene más de medio millón de cache misses que la primera. Si se le descuenta los cache misses de las rutinas que ambas comparten (leer y escribir bmp), la distancia relativa es aún mayor.
+
+Otro aspecto interesante para ver que aunque la versión que unrollea 128 ciclos es más rápida en el mejor caso que la que unrollea 4, en el caso promedio la cosa es muy distinta. Esto es fácil de explicar, dado que como la versión de 128 es más grande, es bastante probable que el microprocesador tenga que desalojar una parte del código para poner código o datos de otra tarea.
 
 Por todas estas razones es que responsabilizamos más que nada a los cache misses por el rendimiento superior del binario más chico por sobre el del más grande.
 

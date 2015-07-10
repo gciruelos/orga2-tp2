@@ -240,6 +240,42 @@ Esta vez, encontramos una brecha mucho más marcada entre las distintas implemen
 
 Como habíamos notado antes, el hecho de estar utilizando imágenes pequeñas no ayuda a que se note la diferencia entre ASM1 y ASM2. Pensamos que uno de los posibles motivos para esto es que los algoritmos que escribimos no están optimizados en tanto a sus accesos a memoria: ambos hacen accesos desalineados. Una posible mejora para el algoritmo de ASM2 sería utilizar los registros AVX para poder obtener más píxeles de memoria, disminuyendo la cantidad de accesos, y permitiéndonos un trabajo mucho más rápido, procesando de a 8 píxeles en simultaneo. Otra posible mejora sería pedir que las direcciones de memoria con las que trabajamos estén alineadas a 16 bits. Esto nos permitiría realizar siempre accesos alineados, lo que debería mejorar la performance de nuestros algoritmos.
 
+
+
+\subsubsection*{Experimento}
+Un experimento que nos fue propuesto fue el de analizar no solo el algoritmo del filtro, si no tambien ver cuando toma cargar la imagen y guardarla, para tener una relación del costo de cargar la imagen en comparación con el filtro.
+
+En este experimento jugó especial importancia el estadístico que elegimos. Como leer/escribir archivos usualmente requiere accesos a disco, fue muy importante no elegir como estadístico el promedio de las mediciones y elegir el mínimo de ellas. Esto se nota sobre todo en la parte de escritura, dado que en general nuestro programa ``pierde el control'' de lo que sucede, y las cosas quedan en manos del sistema operativo y el filesystem, entonces las cosas tardan mucho.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{images/blur-partes.png}
+  \caption{Análisis comparativo del porcentaje de tiempo dedicado a cada instancia. Tamaño de la muestra: 200 imágenes de $16\times 10^4$ píxeles. Todo el proceso toma al rededor de $14 \times 10^6$ ciclos de reloj como mínimo.}
+\end{figure}
+
+Los resultados fueron similares a los que esperabamos, se nota que el filtro toma menos tiempo que las otras 2 partes, sin embargo es en la que se debería hacer más foco a la hora de optimizar, dado que las otras dos ya son bastante optimas (no se puede hacer nada mucho mas rápido que lo que ya se hace, realmente).
+
+Como dijimos antes, si hubieramos tomado el promedio de las mediciones, en lugar de el mínimo, el filtro hubiera ocupado solamente el 1\% de ese gráfico, mientras que la lectura de la imagen se hubiera llevado el 3\% y la escritura el 96\%.
+
+
+
+\subsubsection*{Experimento}
+Otro experimento que realizamos es ver como funciona nuestro algoritmo con imagenes que son muy distintas. Para eso, elegimos 3 imagenes que nos parecieron representantivas para lo que queremos mostrar: una totalmente blanca, una totalmente negra y Lena.
+
+La justificación de la elección de las imagenes es que todas representan un extremo distinto en la distribución de los canales de color, una lo máximo posible, otra lo mínimo posible, y otra una distribución más al ``azar'' de los canales, aunque con patrones bien marcados.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{images/blur-imgs.png}
+  \caption{Comparación de la cantidad de ciclo de reloj utilizada por ASM2 para procesar distintas imagenes. Tamaño de la muestra: 200 imágenes de $512 \times 512$ píxeles.}
+\end{figure}
+
+Como era de esperarse, no hay variaciones entre los tiempos de las corridas de nuestro algoritmo sobre estas imagenes. Esto se debe a que nuestro algoritmo siempre realiza la misma operatoria, sin importar los canales de la imagen.
+
+
+
+\subsubsection*{Experimento}
+
 A modo de cuantificar el impacto de la caché en la performance de nuestros algoritmos, decidimos correr un experimento cuyo impacto cambie ampliamente según los hits y miss de la cache. Según observamos, la máquina de pruebas tiene una cache con lineas de 64 bytes, con 64 conjuntos y un tamaño de 32K, por lo que podría guardar en una línea hasta 16 píxeles. Con esto en mente, generamos imágenes de 32 píxeles de ancho y alto variable, y corrimos la versión de ASM2 de blur para estas imágenes y sus traspuestas. La idea era que las imágenes de 32 píxeles de ancho, al entrar en lineas de caché contiguas iban a tener una menor cantidad de accesos a memoria efectivos que las imágenes que tuviesen a sus filas separadas en distintas lineas de caché; y por lo tanto una menor cantidad de caché misses, que deberían manifestarse en un menor tiempo de ejecución:
 
 \begin{figure}[H]
@@ -248,4 +284,13 @@ A modo de cuantificar el impacto de la caché en la performance de nuestros algo
   \caption{Performance de Blur ASM2 según los distintos tamaños de imágen, ordenados de a pares de la imagen con su traspuesta. El resultado esperado era que encontrásemos que la primer entrada de cada par sería menor a la segunda en todos los casos. Los resultados son utilizando al mínimo como estadístico de 10000 corridas.}
 \end{figure}
 
-Observemos que no sucede lo que hipotetizabamos, o al menos el experimento ideado no logra mostrar datos para sacar una conclusión. Estimamos que esto podría ser producido por una amortización en términos de ciclos de clock que se produzca consistentemente en los casos elegidos. Fuera de eso, para el RTP logramos arreglar el problema de los invalid reads. Para evitar el segfault, la idea al principio era que al levantar píxeles de la tercera fila, lo hiciéramos con un píxel rezagado para no pasarnos del rango valido y luego arreglar esto con un shift. Sin embargo, al copiar dos filas al iterar introdujimos un nuevo problema. Si nosotros consideramos que levantamos de a 4 píxeles desde la imagen original, en las primeras dos filas nunca tendríamos un segmentation fault dado que la siguiente fila siempre esta disponible para proveernos de un píxel basura. Esto no sucedía con las dos filas que copiábamos, donde la cantidad de memoria que habíamos solicitado por malloc alcanzaba justo para los píxeles de una fila. Para resolver este problema, simplemente pedimos un píxel mas con malloc para cada fila.
+Observemos que no sucede lo que hipotetizabamos, o al menos el experimento ideado no logra mostrar datos para sacar una conclusión. 
+Estimamos que esto podría ser producido por una amortización en términos de ciclos de clock que se produzca consistentemente en los casos elegidos. 
+
+Otra razón a la que atribuimos que el experimento no haya salido como planeabamos es que la computadora está corriendo muchas tareas al mismo tiempo, entonces no nos es posible determinar que está sucediendo en la cache del microprocesador mientras corre nuestra aplicación (agregandole la complejidad del multicore y el cache de varios niveles, es aún mas difícil).
+
+% vvv al pedo esto, David nunca se entero de que esto sucedió
+%Fuera de eso, para el RTP logramos arreglar el problema de los invalid reads. Para evitar el segfault, la idea al principio era que al levantar píxeles de la tercera fila, lo hiciéramos con un píxel rezagado para no pasarnos del rango valido y luego arreglar esto con un shift. Sin embargo, al copiar dos filas al iterar introdujimos un nuevo problema. Si nosotros consideramos que levantamos de a 4 píxeles desde la imagen original, en las primeras dos filas nunca tendríamos un segmentation fault dado que la siguiente fila siempre esta disponible para proveernos de un píxel basura. Esto no sucedía con las dos filas que copiábamos, donde la cantidad de memoria que habíamos solicitado por malloc alcanzaba justo para los píxeles de una fila. Para resolver este problema, simplemente pedimos un píxel mas con malloc para cada fila.
+
+
+
