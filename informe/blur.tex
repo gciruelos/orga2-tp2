@@ -277,6 +277,22 @@ Como era de esperarse, no hay variaciones entre los tiempos de las corridas de n
 
 Y no solo esto, si no que el tiempo que toman las instrucciones de assembler utilizadas no dependen (demasiado) de la entrada. Por ejemplo, en la imagen blanca, la suma de los píxeles siempre da 2295.0, y en la imagen negra siempre da 0.0, y según estos resultados, dividir esos dos números por 9.0 tardaría un tiempo similar.
 
+
+\subsubsection*{Experimento}
+Cuando aprendimos sobre los mecanismos avanzados que usan los procesadores para administrar la cache en las clases teóricas se nos ocurrió este experimento para testearlos. La computadora en la que hicimos este experimento tiene 512kb de cache L2. En 512kb entra una matriz que representa una imagen cuadrada de 350 píxeles de ancho, con lo cual, uno esperaría a priori, que 350 sea un límite en el rendimiento, y a partir de ese tamaño, la performance de imágenes más grandes sería peor.
+
+Sin embargo, los microprocesadores nuevos tienen la capacidad de prever instrucciones y prefetchear datos de acuerdo a lo que instrucciones futuras requieran, por eso nos pareció interesante ver que sucede en la práctica.
+
+\begin{figure}[H] 
+	\centering
+  \includegraphics[scale=0.7]{images/blur-cache.png}
+  \caption{Comparación de la cantidad de ciclio de reloj utilizada por distintas imagene. Tamaño de la muestra: 200 imágenes. Utilizamos la implementacion ASM2.}
+\end{figure}
+
+Como bien se ve en el gráfico, no se observa ningún quiebre. La performance transita por sobre el número 350 suavemente y siguiendo la tendencia anterior. Atribuimos esto, como dijimos antes, a las poderosas tecnologías que incorporan los procesadores modernos para prefetchear datos de memoria. Los nombres que les pone Intel a estos ingredientes en su microarquitectura son  ``Smart Memory Access'' y ``Advanced Smart Cache''.
+
+
+
 \subsubsection*{Experimento}
 
 A modo de cuantificar el impacto de la caché en la performance de nuestros algoritmos, decidimos correr un experimento cuyo impacto cambie ampliamente según los hits y miss de la cache. Según observamos, la máquina de pruebas tiene una cache con lineas de 64 bytes, con 64 conjuntos y un tamaño de 32K, por lo que podría guardar en una línea hasta 16 píxeles. Con esto en mente, generamos imágenes de 32 píxeles de ancho y alto variable, y corrimos la versión de ASM2 de blur para estas imágenes y sus traspuestas. La idea era que las imágenes de 32 píxeles de ancho, al entrar en lineas de caché contiguas iban a tener una menor cantidad de accesos a memoria efectivos que las imágenes que tuviesen a sus filas separadas en distintas lineas de caché; y por lo tanto una menor cantidad de caché misses, que deberían manifestarse en un menor tiempo de ejecución:
