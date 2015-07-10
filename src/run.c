@@ -7,37 +7,6 @@
 
 #include "run.h"
 
-int run_sobel(int c, char* src, char* dst){
-  BMP* bmp = bmp_read(src);
-  if(bmp==0) { return -1;}  // open error
-  
-  uint8_t* data = bmp_get_data(bmp);
-  uint32_t h = *(bmp_get_h(bmp));
-  uint32_t w = *(bmp_get_w(bmp));
-  if(w%4!=0) { return -1;}  // do not support padding
-  
-  uint8_t* dataC = 0;
-  if(*(bmp_get_bitcount(bmp)) == 24) {
-    dataC = malloc(sizeof(uint8_t)*4*h*w);
-    to32(w,h,data,dataC);
-  } else {
-    dataC = data;
-  }
-  
-  if(c==0)        C_sobel(w,h,dataC);
-  else if(c==1) ASM_blur1(w,h,dataC);
-  else if(c==2) ASM_blur2(w,h,dataC);
-  else {return -1;}
-  
-  if(*(bmp_get_bitcount(bmp)) == 24) {
-    to24(w,h,dataC,data);
-    free(dataC);
-  }
-  bmp_save(dst,bmp);
-  bmp_delete(bmp);
-  return 0;
-}
-
 int run_blur(int c, char* src, char* dst){
   BMP* bmp = bmp_read(src);
   if(bmp==0) { return -1;}  // open error
