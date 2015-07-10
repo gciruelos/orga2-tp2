@@ -289,24 +289,28 @@ Sin embargo, los microprocesadores nuevos tienen la capacidad de prever instrucc
   \caption{Comparación de la cantidad de ciclio de reloj utilizada por distintas imagene. Tamaño de la muestra: 200 imágenes. Utilizamos la implementacion ASM2.}
 \end{figure}
 
-Como bien se ve en el gráfico, no se observa ningún quiebre. La performance transita por sobre el número 350 suavemente y siguiendo la tendencia anterior. Atribuimos esto, como dijimos antes, a las poderosas tecnologías que incorporan los procesadores modernos para prefetchear datos de memoria. Los nombres que les pone Intel a estos ingredientes en su microarquitectura son  ``Smart Memory Access'' y ``Advanced Smart Cache''.
+Como bien se ve en el gráfico, no se observa ningún quiebre. La performance transita por sobre el número 350 suavemente y siguiendo la tendencia anterior. Atribuimos esto, como dijimos antes, a las poderosas tecnologías que incorporan los procesadores modernos para prefetchear datos de memoria.
 
+Los nombres que les pone Intel a estos ingredientes en su microarquitectura son  ``Smart Memory Access'' y ``Advanced Smart Cache'', y no solo permiten hacer cosas como las que vimos recien, si no que su verdadero poder radica en manejar la memoria inteligentemente en procesadores multicore.
 
+%% Comento este experimento
+%% Le explique a juli porque no tiene tanto sentido
+%% hice un experimento derivado arriba ^
 
-\subsubsection*{Experimento}
+%\subsubsection*{Experimento}
 
-A modo de cuantificar el impacto de la caché en la performance de nuestros algoritmos, decidimos correr un experimento cuyo impacto cambie ampliamente según los hits y miss de la cache. Según observamos, la máquina de pruebas tiene una cache con lineas de 64 bytes, con 64 conjuntos y un tamaño de 32K, por lo que podría guardar en una línea hasta 16 píxeles. Con esto en mente, generamos imágenes de 32 píxeles de ancho y alto variable, y corrimos la versión de ASM2 de blur para estas imágenes y sus traspuestas. La idea era que las imágenes de 32 píxeles de ancho, al entrar en lineas de caché contiguas iban a tener una menor cantidad de accesos a memoria efectivos que las imágenes que tuviesen a sus filas separadas en distintas lineas de caché; y por lo tanto una menor cantidad de caché misses, que deberían manifestarse en un menor tiempo de ejecución:
+%A modo de cuantificar el impacto de la caché en la performance de nuestros algoritmos, decidimos correr un experimento cuyo impacto cambie ampliamente según los hits y miss de la cache. Según observamos, la máquina de pruebas tiene una cache con lineas de 64 bytes, con 64 conjuntos y un tamaño de 32K, por lo que podría guardar en una línea hasta 16 píxeles. Con esto en mente, generamos imágenes de 32 píxeles de ancho y alto variable, y corrimos la versión de ASM2 de blur para estas imágenes y sus traspuestas. La idea era que las imágenes de 32 píxeles de ancho, al entrar en lineas de caché contiguas iban a tener una menor cantidad de accesos a memoria efectivos que las imágenes que tuviesen a sus filas separadas en distintas lineas de caché; y por lo tanto una menor cantidad de caché misses, que deberían manifestarse en un menor tiempo de ejecución:
 
-\begin{figure}[H]
-	\centering
-  \includegraphics[width=11cm]{images/blurasm2cacheimpact.jpg}
-  \caption{Performance de Blur ASM2 según los distintos tamaños de imágen, ordenados de a pares de la imagen con su traspuesta. El resultado esperado era que encontrásemos que la primer entrada de cada par sería menor a la segunda en todos los casos. Los resultados son utilizando al mínimo como estadístico de 10000 corridas.}
-\end{figure}
+%\begin{figure}[H]
+%	\centering
+%  \includegraphics[width=11cm]{images/blurasm2cacheimpact.jpg}
+%  \caption{Performance de Blur ASM2 según los distintos tamaños de imágen, ordenados de a pares de la imagen con su traspuesta. El resultado esperado era que encontrásemos que la primer entrada de cada par sería menor a la segunda en todos los casos. Los resultados son utilizando al mínimo como estadístico de 10000 corridas.}
+%\end{figure}
 
-Observemos que no sucede lo que hipotetizabamos, o al menos el experimento ideado no logra mostrar datos para sacar una conclusión. 
-Estimamos que esto podría ser producido por una amortización en términos de ciclos de clock que se produzca consistentemente en los casos elegidos. 
+%Observemos que no sucede lo que hipotetizabamos, o al menos el experimento ideado no logra mostrar datos para sacar una conclusión. 
+%Estimamos que esto podría ser producido por una amortización en términos de ciclos de clock que se produzca consistentemente en los casos elegidos. 
 
-Otra razón a la que atribuimos que el experimento no haya salido como planeabamos es que la computadora está corriendo muchas tareas al mismo tiempo, entonces no nos es posible determinar que está sucediendo en la cache del microprocesador mientras corre nuestra aplicación (agregandole la complejidad del multicore y el cache de varios niveles, es aún mas difícil).
+%Otra razón a la que atribuimos que el experimento no haya salido como planeabamos es que la computadora está corriendo muchas tareas al mismo tiempo, entonces no nos es posible determinar que está sucediendo en la cache del microprocesador mientras corre nuestra aplicación (agregandole la complejidad del multicore y el cache de varios niveles, es aún mas difícil).
 
 % vvv al pedo esto, David nunca se entero de que esto sucedió
 %Fuera de eso, para el RTP logramos arreglar el problema de los invalid reads. Para evitar el segfault, la idea al principio era que al levantar píxeles de la tercera fila, lo hiciéramos con un píxel rezagado para no pasarnos del rango valido y luego arreglar esto con un shift. Sin embargo, al copiar dos filas al iterar introdujimos un nuevo problema. Si nosotros consideramos que levantamos de a 4 píxeles desde la imagen original, en las primeras dos filas nunca tendríamos un segmentation fault dado que la siguiente fila siempre esta disponible para proveernos de un píxel basura. Esto no sucedía con las dos filas que copiábamos, donde la cantidad de memoria que habíamos solicitado por malloc alcanzaba justo para los píxeles de una fila. Para resolver este problema, simplemente pedimos un píxel mas con malloc para cada fila.
